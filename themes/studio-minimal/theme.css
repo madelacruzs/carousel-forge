@@ -11,6 +11,25 @@
   color: var(--ink);
   font-family: var(--font-body), system-ui, sans-serif;
   overflow: hidden;
+
+  /* Core measures the photograph and hands over a 4x3 grid of mean luminance
+     (--lum-rNcN) and local contrast (--lum-vNcN). What to do about a high-key
+     photograph is a design decision, so the curve lives here, in the theme.
+     The copy block sits at the optical centre, so rows 1-2 of the left two
+     columns are the cells that actually sit behind type. Busy detail reads
+     worse than its mean suggests, hence the variance term. */
+  --copy-luma: calc(
+    max(var(--lum-r1c0), var(--lum-r1c1), var(--lum-r2c0), var(--lum-r2c1)) + 0.7 *
+      max(var(--lum-v1c0), var(--lum-v1c1), var(--lum-v2c0), var(--lum-v2c1))
+  );
+  --auto-veil: clamp(0, calc((var(--copy-luma) - 0.17) * 1.55), 0.76);
+
+  /* Chrome sits in the corners, which are deliberately left unveiled. Rather
+     than stamping a box behind a tiny gold numeral on a white ceiling, flip it
+     to dark ink — which is what the genre does anyway. */
+  --corner-tl: var(--lum-r0c0);
+  --corner-tr: var(--lum-r0c2);
+  --corner-bl: var(--lum-r3c0);
 }
 
 /* --- photograph ---------------------------------------------------------- */
@@ -21,6 +40,22 @@
   background-image: var(--image);
   background-size: cover;
   background-position: center;
+}
+
+/* A soft pool of shade under the headline rather than a full blackout: on a
+   dark photograph this is invisible, on a blown-out white interior it is the
+   only reason the type survives. Lives on `.photo` and not on `.wash` because
+   `.wash` carries an opacity that would scale these alphas a second time. */
+.photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    128% 64% at 24% 44%,
+    rgba(14, 12, 10, var(--auto-veil)) 0%,
+    rgba(14, 12, 10, calc(var(--auto-veil) * 0.62)) 44%,
+    rgba(14, 12, 10, 0) 80%
+  );
 }
 
 /* A wash, not a blackout: the product still has to look expensive. Even at
@@ -102,7 +137,11 @@
   font-weight: 500;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--ink);
+  color: color-mix(
+    in srgb,
+    var(--ink),
+    var(--ink-dark) clamp(0%, calc((var(--corner-tl) - 0.2) * 800%), 100%)
+  );
 }
 
 .social {
@@ -120,7 +159,11 @@
   font-size: 21px;
   font-weight: 500;
   letter-spacing: 0.16em;
-  color: var(--accent);
+  color: color-mix(
+    in srgb,
+    var(--accent),
+    var(--ink-dark) clamp(0%, calc((var(--corner-tr) - 0.2) * 800%), 100%)
+  );
 }
 
 /* --- content at the optical centre --------------------------------------- */
@@ -251,7 +294,11 @@
   font-weight: 500;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--ink-muted);
+  color: color-mix(
+    in srgb,
+    var(--ink-muted),
+    var(--ink-dark) clamp(0%, calc((var(--corner-bl) - 0.2) * 800%), 100%)
+  );
 }
 
 /* Fine print is justified on purpose — it reads as a caption in a catalogue. */

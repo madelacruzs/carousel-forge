@@ -7,6 +7,7 @@
     "accent": "#E8C47A",
     "ink": "#FFFFFF",
     "inkMuted": "rgba(255,255,255,0.74)",
+    "inkDark": "#120D07",
     "paper": "#14100D",
     "overlay": "linear-gradient(180deg, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0.58) 64%, rgba(0,0,0,0.9) 100%)",
     "fontDisplay": "Playfair Display",

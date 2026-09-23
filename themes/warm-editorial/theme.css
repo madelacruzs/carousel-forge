@@ -22,12 +22,44 @@ body {
 
 /* ---- photograph ------------------------------------------------------- */
 
+/* Adaptive scrim.
+   Core measures the photograph on a 4x3 grid and exposes, per cell, its mean
+   luminance (--lum-rNcN) and how busy it is (--lum-vNcN). Which cells matter,
+   and how hard to push back, are design decisions — so they live here.
+
+   Copy in this theme is left-aligned in the lower third, so the cells that
+   matter are rows 2-3, columns 0-1. max() rather than an average, because one
+   bright storefront behind one line is enough to lose the line. Busyness is
+   folded in at a lower weight: thin type over high-frequency detail reads
+   badly even when the mean contrast is nominally fine. */
+.slide {
+  --copy-luma: calc(
+    max(var(--lum-r2c0), var(--lum-r2c1), var(--lum-r3c0), var(--lum-r3c1)) + 0.8 *
+      max(var(--lum-v2c0), var(--lum-v2c1), var(--lum-v3c0), var(--lum-v3c1))
+  );
+  --auto-bottom: clamp(0, calc((var(--copy-luma) - 0.14) * 1.75), 0.82);
+  --corner-luma: var(--lum-r0c0);
+}
+
 .photo {
   position: absolute;
   inset: 0;
   background-image: var(--image);
   background-size: cover;
   background-position: center;
+}
+
+/* Kept separate from .scrim so the base overlay's opacity does not scale it. */
+.photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    0deg,
+    rgba(0, 0, 0, var(--auto-bottom)) 0%,
+    rgba(0, 0, 0, calc(var(--auto-bottom) * 0.74)) 26%,
+    rgba(0, 0, 0, 0) 60%
+  );
 }
 
 .scrim {
@@ -39,6 +71,10 @@ body {
 
 /* ---- slide number ------------------------------------------------------ */
 
+/* The top of the frame is deliberately unscrimmed, which strands a small gold
+   number on a white sky. Rather than stamping a dark blob behind it, the
+   number flips to a deep ink as the corner gets brighter — which is what you
+   would do by hand, and leaves the photograph alone. */
 .index {
   position: absolute;
   top: var(--safe-top);
@@ -47,8 +83,12 @@ body {
   font-size: 26px;
   font-weight: 500;
   letter-spacing: 0.22em;
-  color: var(--accent);
-  opacity: 0.78;
+  color: color-mix(
+    in srgb,
+    var(--accent),
+    var(--ink-dark) clamp(0%, calc((var(--corner-luma) - 0.16) * 900%), 100%)
+  );
+  opacity: calc(0.78 + 0.22 * clamp(0, calc((var(--corner-luma) - 0.16) * 9), 1));
   font-variant-numeric: tabular-nums;
 }
 
@@ -238,6 +278,26 @@ body {
   opacity: calc(0.55 + 0.45 * var(--overlay-strength));
 }
 
+/* The quote sits at the optical centre, so the cells that matter are the
+   middle rows rather than the bottom ones. */
+.layout-quote .slide,
+.layout-quote.slide {
+  --copy-luma: calc(
+    max(var(--lum-r1c0), var(--lum-r1c1), var(--lum-r2c0), var(--lum-r2c1)) + 0.8 *
+      max(var(--lum-v1c0), var(--lum-v1c1), var(--lum-v2c0), var(--lum-v2c1))
+  );
+}
+
+.layout-quote .photo::after {
+  background: linear-gradient(
+    0deg,
+    rgba(0, 0, 0, calc(var(--auto-bottom) * 0.6)) 0%,
+    rgba(0, 0, 0, var(--auto-bottom)) 26%,
+    rgba(0, 0, 0, var(--auto-bottom)) 68%,
+    rgba(0, 0, 0, calc(var(--auto-bottom) * 0.35)) 100%
+  );
+}
+
 /* ---- layout: split ----------------------------------------------------- */
 
 .split {
@@ -292,15 +352,30 @@ body {
   top: var(--safe-top);
 }
 
+/* The copy sits over the lower pane, which is imageB — so the cells that
+   matter are the bottom rows of the *second* image's own grid. */
+.layout-split .slide {
+  --copy-luma: calc(
+    max(var(--lum-b-r2c0), var(--lum-b-r2c1), var(--lum-b-r3c0), var(--lum-b-r3c1)) + 0.8 *
+      max(var(--lum-b-v2c0), var(--lum-b-v2c1), var(--lum-b-v3c0), var(--lum-b-v3c1))
+  );
+  --label-luma: max(var(--lum-r0c0), var(--lum-b-r0c0));
+}
+
 .scrim--split {
   position: absolute;
   inset: 0;
+  /* The adaptive stops below are already absolute alphas, so this must not be
+     scaled a second time by the base `.scrim` opacity. */
+  opacity: 1;
   background: linear-gradient(
     180deg,
-    rgba(0, 0, 0, 0.35) 0%,
-    rgba(0, 0, 0, 0) 22%,
-    rgba(0, 0, 0, 0) 52%,
-    rgba(0, 0, 0, 0.82) 100%
+    rgba(0, 0, 0, calc(0.35 + 0.3 * var(--auto-bottom))) 0%,
+    rgba(0, 0, 0, 0) 20%,
+    rgba(0, 0, 0, 0) 44%,
+    rgba(0, 0, 0, calc(0.2 + 0.35 * var(--auto-bottom))) 64%,
+    rgba(0, 0, 0, max(0.72, var(--auto-bottom))) 76%,
+    rgba(0, 0, 0, max(0.88, var(--auto-bottom))) 100%
   );
 }
 

@@ -4,12 +4,51 @@ import sharp from 'sharp';
 import { ForgeError } from '../errors.js';
 import { displayPath, pathExists, sha256 } from '../util/fs.js';
 import { coverCrop, coverScale, type CropRect, type Size } from './crop.js';
+import { registerAsset } from '../render/assets.js';
+
+export interface LuminanceBands {
+  /** Mean relative luminance of the top 22% of the cropped photo. */
+  top: number;
+  /** ...of the middle band, y 30%–70%. */
+  mid: number;
+  /** ...of the bottom 38%, where most themes set their copy. */
+  bottom: number;
+  /** ...of the whole frame. */
+  all: number;
+  /**
+   * Mean luminance per cell of a 4-row by 3-column grid, row-major.
+   *
+   * Bands alone are too coarse: a dark band average hides a bright storefront
+   * sitting directly behind a line of type. Themes pick the cells their copy
+   * actually covers.
+   */
+  cells: number[];
+  /**
+   * Luminance standard deviation per cell, same order as `cells`.
+   *
+   * Mean brightness is only half the legibility story — small type over a
+   * busy, high-frequency background is hard to read even when the average
+   * contrast is fine. Themes can fold this into their scrim curve.
+   */
+  variance: number[];
+}
 
 export interface PreparedImage {
-  /** `data:` URI of the cropped, exactly sized image. */
+  /**
+   * URL the page should reference. Served from memory by the renderer rather
+   * than inlined, because Chromium silently drops `data:` URLs over 2 MB.
+   */
+  url: string;
+  /** `data:` URI of the same bytes. Convenient for embedding elsewhere. */
   dataUri: string;
-  /** Raw PNG bytes behind the data URI, kept for pixel sampling in `doctor`. */
+  /** Raw PNG bytes behind the URL, kept for pixel sampling in `doctor`. */
   buffer: Buffer;
+  /**
+   * How bright the photo is, by band. Exposed to themes as custom properties
+   * so a theme can deepen its own scrim over a high-key photograph. Core
+   * measures; the theme decides what to do about it.
+   */
+  luminance: LuminanceBands;
   source: Size;
   target: Size;
   crop: CropRect;
@@ -46,12 +85,23 @@ export async function assertAssetExists(
   return absolute;
 }
 
-/** Inline any file as a data URI without touching its pixels. Used for logos. */
+/** Inline any file as a data URI without touching its pixels. */
 export async function inlineAsset(file: string): Promise<string> {
   const ext = path.extname(file).toLowerCase();
   const mime = MIME_BY_EXT[ext] ?? 'application/octet-stream';
   const bytes = await fs.readFile(file);
   return `data:${mime};base64,${bytes.toString('base64')}`;
+}
+
+/**
+ * Serve any file to the page by URL without touching its pixels. Used for
+ * logos, which can be SVG or a large PNG.
+ */
+export async function assetUrl(file: string): Promise<string> {
+  const ext = path.extname(file).toLowerCase();
+  const mime = MIME_BY_EXT[ext] ?? 'application/octet-stream';
+  const bytes = await fs.readFile(file);
+  return registerAsset(bytes, mime);
 }
 
 const cache = new Map<string, PreparedImage>();
@@ -105,8 +155,10 @@ export async function prepareImage(options: {
     .toBuffer();
 
   const prepared: PreparedImage = {
+    url: registerAsset(buffer, 'image/png'),
     dataUri: `data:image/png;base64,${buffer.toString('base64')}`,
     buffer,
+    luminance: await luminanceBands(buffer),
     source,
     target,
     crop,
@@ -119,6 +171,89 @@ export async function prepareImage(options: {
 
 export function clearImageCache(): void {
   cache.clear();
+}
+
+/** Thumbnail width used for luminance sampling. Small, but enough for bands. */
+const LUMA_W = 96;
+
+/** Luminance grid resolution. Rows are horizontal slices, top to bottom. */
+export const LUMA_ROWS = 4;
+export const LUMA_COLS = 3;
+
+/**
+ * Average brightness of the photo, by band and by grid cell.
+ *
+ * Sampled from a small thumbnail rather than the full frame: it is two orders
+ * of magnitude cheaper, still representative of an area average, and — because
+ * sharp's resize is deterministic — produces the same numbers everywhere.
+ * Rounded so the value serialised into CSS never drifts.
+ */
+export async function luminanceBands(png: Buffer): Promise<LuminanceBands> {
+  const { data, info } = await sharp(png)
+    .resize(LUMA_W, null, { kernel: 'lanczos3' })
+    .removeAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+
+  const { width, height, channels } = info;
+
+  const luma = (x: number, y: number): number => {
+    const i = (y * width + x) * channels;
+    return relativeLuminance(
+      (data[i] ?? 0) / 255,
+      (data[i + 1] ?? 0) / 255,
+      (data[i + 2] ?? 0) / 255,
+    );
+  };
+
+  const rowLuma: number[] = [];
+  for (let y = 0; y < height; y += 1) {
+    let total = 0;
+    for (let x = 0; x < width; x += 1) total += luma(x, y);
+    rowLuma.push(total / width);
+  }
+
+  const band = (from: number, to: number): number => {
+    const a = Math.max(0, Math.min(height - 1, Math.floor(from * height)));
+    const b = Math.max(a + 1, Math.min(height, Math.ceil(to * height)));
+    let total = 0;
+    for (let y = a; y < b; y += 1) total += rowLuma[y] ?? 0;
+    return round4(total / (b - a));
+  };
+
+  const cells: number[] = [];
+  const variance: number[] = [];
+  for (let r = 0; r < LUMA_ROWS; r += 1) {
+    const y0 = Math.floor((r / LUMA_ROWS) * height);
+    const y1 = Math.max(y0 + 1, Math.floor(((r + 1) / LUMA_ROWS) * height));
+    for (let c = 0; c < LUMA_COLS; c += 1) {
+      const x0 = Math.floor((c / LUMA_COLS) * width);
+      const x1 = Math.max(x0 + 1, Math.floor(((c + 1) / LUMA_COLS) * width));
+      const samples: number[] = [];
+      for (let y = y0; y < y1; y += 1) {
+        for (let x = x0; x < x1; x += 1) samples.push(luma(x, y));
+      }
+      const mean = samples.reduce((a, b) => a + b, 0) / (samples.length || 1);
+      const sd = Math.sqrt(
+        samples.reduce((a, b) => a + (b - mean) ** 2, 0) / (samples.length || 1),
+      );
+      cells.push(round4(mean));
+      variance.push(round4(sd));
+    }
+  }
+
+  return {
+    top: band(0, 0.22),
+    mid: band(0.3, 0.7),
+    bottom: band(0.62, 1),
+    all: band(0, 1),
+    cells,
+    variance,
+  };
+}
+
+function round4(value: number): number {
+  return Math.round(value * 10000) / 10000;
 }
 
 export interface Rect {

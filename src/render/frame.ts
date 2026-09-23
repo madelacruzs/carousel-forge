@@ -5,12 +5,7 @@ import { assignRoles, budgetFor } from '../narrative/resolve.js';
 import type { CopyBudget, NarrativeRole } from '../narrative/schema.js';
 import { resolveLayout, type Theme } from '../theme/load.js';
 import { mergeTokens, type Tokens } from '../theme/tokens.js';
-import {
-  assertAssetExists,
-  inlineAsset,
-  prepareImage,
-  type PreparedImage,
-} from '../image/prepare.js';
+import { assertAssetExists, assetUrl, prepareImage, type PreparedImage } from '../image/prepare.js';
 import { lines as splitLines } from '../util/text.js';
 
 /**
@@ -119,7 +114,7 @@ export async function buildFrames(options: BuildFramesOptions): Promise<Frame[]>
   let logo: string | undefined;
   if (carousel.brand?.logo) {
     const file = await assertAssetExists(carousel.brand.logo, baseDir, 'Brand logo');
-    logo = await inlineAsset(file);
+    logo = await assetUrl(file);
   }
 
   const frames: Frame[] = [];
@@ -205,8 +200,8 @@ export async function buildFrames(options: BuildFramesOptions): Promise<Frame[]>
     if (carousel.brand?.name !== undefined) context.brandName = carousel.brand.name;
     if (carousel.brand?.url !== undefined) context.url = carousel.brand.url;
     if (logo !== undefined) context.logo = logo;
-    if (images.primary) context.image = images.primary.dataUri;
-    if (images.secondary) context.imageB = images.secondary.dataUri;
+    if (images.primary) context.image = images.primary.url;
+    if (images.secondary) context.imageB = images.secondary.url;
 
     frames.push({
       slideIndex: i,

@@ -5,6 +5,7 @@ import path from 'node:path';
 import { tokensToCss } from '../theme/tokens.js';
 import type { Theme } from '../theme/load.js';
 import type { Frame } from './frame.js';
+import { LUMA_COLS, LUMA_ROWS, type LuminanceBands } from '../image/prepare.js';
 
 /**
  * Handlebars is used with escaping left on. Themes are trusted markup, slide
@@ -76,6 +77,33 @@ img { display: block; max-width: 100%; }
 `.trim();
 }
 
+const EMPTY_LUMINANCE: LuminanceBands = {
+  top: 0,
+  mid: 0,
+  bottom: 0,
+  all: 0,
+  cells: Array.from({ length: LUMA_ROWS * LUMA_COLS }, () => 0),
+  variance: Array.from({ length: LUMA_ROWS * LUMA_COLS }, () => 0),
+};
+
+/** `--lum-*` custom properties for one image. */
+function luminanceVars(prefix: string, luma: LuminanceBands): string[] {
+  const out = [
+    `${prefix}-top: ${luma.top}`,
+    `${prefix}-mid: ${luma.mid}`,
+    `${prefix}-bottom: ${luma.bottom}`,
+    `${prefix}-all: ${luma.all}`,
+  ];
+  for (let r = 0; r < LUMA_ROWS; r += 1) {
+    for (let c = 0; c < LUMA_COLS; c += 1) {
+      const i = r * LUMA_COLS + c;
+      out.push(`${prefix}-r${r}c${c}: ${luma.cells[i] ?? 0}`);
+      out.push(`${prefix}-v${r}c${c}: ${luma.variance[i] ?? 0}`);
+    }
+  }
+  return out;
+}
+
 function frameCss(frame: Frame): string {
   const { canvas, safeArea } = frame.context;
   const declarations: string[] = [
@@ -91,6 +119,14 @@ function frameCss(frame: Frame): string {
   ];
   if (frame.context.image) declarations.push(`--image: url("${frame.context.image}")`);
   if (frame.context.imageB) declarations.push(`--image-b: url("${frame.context.imageB}")`);
+
+  // Core measures how bright the photo is and hands the numbers over. What to
+  // do about a high-key photograph is a design decision, so it belongs to the
+  // theme — which can read these in calc() to deepen its own scrim.
+  // Always declared, so `var(--lum-bottom)` resolves even with no photo.
+  const luma = frame.images?.primary?.luminance ?? EMPTY_LUMINANCE;
+  declarations.push(...luminanceVars('--lum', luma));
+  declarations.push(...luminanceVars('--lum-b', frame.images?.secondary?.luminance ?? luma));
   return `:root {\n${declarations.map((d) => `  ${d};`).join('\n')}\n}`;
 }
 

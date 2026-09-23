@@ -320,6 +320,64 @@ about it.
 Photos are cropped to the exact canvas size by sharp before the browser sees
 them, so `background-size: cover` never resamples.
 
+### Adapting to the photograph
+
+A fixed overlay that looks right over a test gradient will leave white type
+stranded on a blown-out window. So core measures the cropped photograph and
+hands the numbers to the theme as plain unitless custom properties — **core
+measures, the theme decides**. No threshold, curve or colour lives in core.
+
+| Property                                              | Meaning                                                                          |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `--lum-top`, `--lum-mid`, `--lum-bottom`, `--lum-all` | mean relative luminance, `0`–`1`, of horizontal thirds and the whole frame       |
+| `--lum-rNcN`                                          | mean luminance of one cell of a 4×3 grid, `r0c0` top-left to `r3c2` bottom-right |
+| `--lum-vNcN`                                          | local contrast (standard deviation) of that cell — how _busy_ it is              |
+| `--lum-b-*`                                           | the same set for the second photo of a `split` layout                            |
+
+Busy detail hurts small type more than its mean luminance suggests, so fold in
+the variance rather than reading the mean alone, and use `max()` across the
+cells the copy really covers rather than an average:
+
+```css
+.slide {
+  --copy-luma: calc(
+    max(var(--lum-r2c0), var(--lum-r2c1), var(--lum-r3c0), var(--lum-r3c1)) + 0.8 *
+      max(var(--lum-v2c0), var(--lum-v2c1), var(--lum-v3c0), var(--lum-v3c1))
+  );
+  --auto-bottom: clamp(0, calc((var(--copy-luma) - 0.14) * 1.75), 0.82);
+}
+
+.photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, rgba(0, 0, 0, var(--auto-bottom)) 0%, transparent 62%);
+}
+```
+
+Two things that will bite you:
+
+- Put the adaptive layer on an element with **no `opacity`** of its own. An
+  ancestor or sibling opacity silently scales your computed alpha a second
+  time, and the scrim will look like it is doing nothing.
+- A scrim is not the only answer. Over a bright corner, flipping small chrome
+  to dark ink reads better than stamping a dark blob behind it:
+
+  ```css
+  .index {
+    color: color-mix(
+      in srgb,
+      var(--accent),
+      var(--ink-dark) clamp(0%, calc((var(--lum-r0c0) - 0.16) * 900%), 100%)
+    );
+  }
+  ```
+
+These properties are always declared, so `var(--lum-bottom)` resolves to `0`
+on a slide with no photograph. Run `carousel-forge doctor` after tuning: it
+samples the rendered pixels behind every text run and will tell you whether
+the curve you wrote actually holds.
+
 ## Create your own narrative
 
 ```bash

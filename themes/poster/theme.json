@@ -7,6 +7,7 @@
     "accent": "#E8C47A",
     "ink": "#F7F2E9",
     "inkMuted": "rgba(247,242,233,0.62)",
+    "inkDark": "#110F0C",
     "paper": "#121013",
     "paperGlow": "radial-gradient(120% 85% at 50% 8%, rgba(232,196,122,0.16) 0%, rgba(18,16,19,0) 62%)",
     "overlay": "linear-gradient(180deg, rgba(18,16,19,0.82) 0%, rgba(18,16,19,0.62) 42%, rgba(18,16,19,0.92) 100%)",

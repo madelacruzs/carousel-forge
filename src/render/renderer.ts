@@ -4,6 +4,7 @@ import { ForgeError } from '../errors.js';
 import type { Theme } from '../theme/load.js';
 import type { Frame } from './frame.js';
 import { renderFrameHtml } from './html.js';
+import { assetOrigin, isAssetUrl, lookupAsset } from './assets.js';
 
 /** A measurement taken from the live DOM, used by `doctor`. */
 export interface SlotProbe {
@@ -165,9 +166,10 @@ export class Renderer {
   private async withPage<T>(
     width: number,
     height: number,
-    fn: (page: Page) => Promise<T>,
+    fn: (page: Page, served: Set<string>) => Promise<T>,
   ): Promise<T> {
     let context: BrowserContext | undefined;
+    const served = new Set<string>();
     try {
       context = await this.browser.newContext({
         viewport: { width, height },
@@ -180,7 +182,22 @@ export class Renderer {
         offline: true,
       });
       const page = await context.newPage();
-      return await fn(page);
+      await page.route(`${assetOrigin()}/**`, async (route) => {
+        const url = route.request().url();
+        const asset = lookupAsset(url);
+        if (!asset) {
+          await route.abort('failed');
+          return;
+        }
+        await route.fulfill({
+          status: 200,
+          contentType: asset.mime,
+          body: asset.bytes,
+          headers: { 'cache-control': 'no-store' },
+        });
+        served.add(url);
+      });
+      return await fn(page, served);
     } finally {
       await context?.close();
     }
@@ -190,7 +207,7 @@ export class Renderer {
     const html = renderFrameHtml({ frame, theme, fontCss });
     const { w, h } = frame.context.canvas;
 
-    return this.withPage(w, h, async (page) => {
+    return this.withPage(w, h, async (page, served) => {
       await page.setContent(html, { waitUntil: 'load' });
       await page.evaluate(() => document.fonts.ready);
       await page.evaluate(async () => {
@@ -207,6 +224,44 @@ export class Renderer {
         );
       });
       if (this.settleMs > 0) await page.waitForTimeout(this.settleMs);
+
+      // A photo that never painted is the single most damaging silent failure
+      // this renderer can have: the slide still looks plausible, just empty.
+      // Only URLs the theme actually references are checked — a layout is free
+      // to ignore the slide's photo.
+      const referenced = (await page.evaluate(() => {
+        const urls = new Set<string>();
+        const collect = (value: string) => {
+          for (const match of value.matchAll(/url\("?([^")]+)"?\)/g)) {
+            if (match[1]) urls.add(match[1]);
+          }
+        };
+        for (const el of Array.from(document.querySelectorAll('*'))) {
+          const style = getComputedStyle(el);
+          collect(style.backgroundImage);
+          collect(style.borderImageSource);
+          for (const pseudo of ['::before', '::after']) {
+            const ps = getComputedStyle(el, pseudo);
+            collect(ps.backgroundImage);
+            collect(ps.content);
+          }
+        }
+        for (const img of Array.from(document.images)) {
+          if (img.currentSrc || img.src) urls.add(img.currentSrc || img.src);
+        }
+        return Array.from(urls);
+      })) as unknown as string[];
+
+      const missing = referenced.filter((url) => isAssetUrl(url) && !served.has(url));
+      if (missing.length > 0) {
+        throw new ForgeError(
+          `An image on slide ${frame.slideNumber} was referenced but never loaded.`,
+          {
+            where: `with theme "${theme.manifest.name}"`,
+            hint: 'this is a bug in carousel-forge, not in your project — please report it with the image that triggered it.',
+          },
+        );
+      }
 
       const probes = (await page.evaluate(PROBE_SCRIPT)) as unknown as SlotProbe[];
       const raw = await page.screenshot({

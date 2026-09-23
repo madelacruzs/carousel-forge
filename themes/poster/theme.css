@@ -12,6 +12,21 @@
   color: var(--ink);
   font-family: var(--font-body), system-ui, sans-serif;
   overflow: hidden;
+
+  /* Core measures, the theme decides. `--lum-rNcN` is a 4x3 grid of mean
+     luminance over the cropped photograph and `--lum-vNcN` its local contrast.
+     The headline and the paragraph occupy the lower half, so rows 2-3 are what
+     matter. The veil below deepens only as far as those cells demand. */
+  --copy-luma: calc(
+    max(var(--lum-r2c0), var(--lum-r2c1), var(--lum-r3c0), var(--lum-r3c1)) + 0.7 *
+      max(var(--lum-v2c0), var(--lum-v2c1), var(--lum-v3c0), var(--lum-v3c1))
+  );
+  --auto-veil: clamp(0, calc((var(--copy-luma) - 0.15) * 1.6), 0.8);
+
+  /* The header sits above the veil on purpose. Rather than boxing the tiny
+     gold numeral, flip it to dark ink when the corner behind it is bright. */
+  --corner-tl: var(--lum-r0c0);
+  --corner-tr: var(--lum-r0c2);
 }
 
 /* --- ground -------------------------------------------------------------- */
@@ -22,6 +37,22 @@
   background-image: var(--image);
   background-size: cover;
   background-position: center;
+}
+
+/* The flat veil is a look; this is the safety net under it. It sits on
+   `.photo` rather than `.veil` because `.veil` carries an opacity that would
+   scale these alphas a second time. */
+.photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(10, 8, 7, 0) 30%,
+    rgba(10, 8, 7, calc(var(--auto-veil) * 0.5)) 52%,
+    rgba(10, 8, 7, var(--auto-veil)) 74%,
+    rgba(10, 8, 7, var(--auto-veil)) 100%
+  );
 }
 
 .veil {
@@ -129,7 +160,11 @@
   font-weight: 500;
   letter-spacing: 0.34em;
   text-transform: uppercase;
-  color: var(--ink-muted);
+  color: color-mix(
+    in srgb,
+    var(--ink-muted),
+    var(--ink-dark) clamp(0%, calc((var(--corner-tl) - 0.2) * 800%), 100%)
+  );
 }
 
 .index {
@@ -139,7 +174,11 @@
   font-family: var(--font-display), Georgia, serif;
   font-size: 26px;
   letter-spacing: 0.1em;
-  color: var(--accent);
+  color: color-mix(
+    in srgb,
+    var(--accent),
+    var(--ink-dark) clamp(0%, calc((var(--corner-tr) - 0.2) * 800%), 100%)
+  );
 }
 
 /* --- the sheet ----------------------------------------------------------- */

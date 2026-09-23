@@ -64,9 +64,16 @@ Two rules:
 
 **`theme.css`** may read the token custom properties plus the ones core
 provides: `--canvas-w`, `--canvas-h`, `--safe-top/right/bottom/left`,
-`--overlay-strength`, `--image`, `--image-b`. The layout and narrative role
+`--overlay-strength`, `--image`, `--image-b`, and the luminance measurements
+`--lum-top/mid/bottom/all`, `--lum-rNcN`, `--lum-vNcN` and their `--lum-b-*`
+twins for the second photo of a `split`. The layout and narrative role
 arrive as classes on `<body>` (`.layout-cta`, `.role-hook`), so variants are
 descendant selectors.
+
+Core measures the photograph; the theme decides what to do about it. If you
+add a threshold or a curve to core to make your theme look right, that is a
+bug — put it in your `theme.css` instead. See "Adapting to the photograph"
+in the README for the properties and two traps worth knowing about.
 
 Do not hardcode a colour, a font family or a size that a user might reasonably
 want to change — make it a token. Tokens are what `brand:` in `carousel.yaml`
@@ -100,6 +107,11 @@ A theme is not done until these all look right:
 - The `split` layout with `imageB`, `labelA` and `labelB`.
 - A long `handle` and a missing `logo`.
 - All three of `viral-5`, `story-arc` and `before-after`.
+- **Real photographs, not test gradients.** A flat gradient is the one case
+  every overlay survives. Render over a blown-out window, a mostly-white
+  interior, a busy patterned surface and a very dark night shot before you
+  believe the theme works. `tests/hard-photo.test.ts` keeps a synthetic
+  version of this honest, but it is not a substitute for looking.
 
 ### 5. Generate the preview
 

@@ -35,11 +35,16 @@ export { coverCrop, coverScale, hasEnoughResolution } from './image/crop.js';
 export type { CropRect, Size } from './image/crop.js';
 export {
   prepareImage,
+  assetUrl,
+  inlineAsset,
   clearImageCache,
   contrastRatio,
   relativeLuminance,
+  luminanceBands,
+  LUMA_ROWS,
+  LUMA_COLS,
 } from './image/prepare.js';
-export type { PreparedImage } from './image/prepare.js';
+export type { PreparedImage, LuminanceBands } from './image/prepare.js';
 
 export { buildFrames, padIndex, splitTitle } from './render/frame.js';
 export type { Frame, TemplateContext } from './render/frame.js';
@@ -49,6 +54,14 @@ export type { RenderedFrame, SlotProbe } from './render/renderer.js';
 export { renderContactSheet } from './render/contactSheet.js';
 export type { OutputTarget, TargetContext, TargetResult } from './render/targets/target.js';
 export { PngTarget } from './render/targets/png.js';
+export {
+  registerAsset,
+  lookupAsset,
+  isAssetUrl,
+  assetOrigin,
+  clearAssets,
+} from './render/assets.js';
+export type { Asset } from './render/assets.js';
 
 export { ensureGoogleFonts, fontFaceCss, fontCacheDir, themeFontFaces } from './fonts/google.js';
 
