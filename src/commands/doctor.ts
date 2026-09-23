@@ -59,7 +59,8 @@ export async function doctorCommand(options: DoctorCommandOptions): Promise<numb
   log.info('');
   const parts: string[] = [];
   if (report.errors) parts.push(pc.red(`${report.errors} error${report.errors === 1 ? '' : 's'}`));
-  if (report.warnings) parts.push(pc.yellow(`${report.warnings} warning${report.warnings === 1 ? '' : 's'}`));
+  if (report.warnings)
+    parts.push(pc.yellow(`${report.warnings} warning${report.warnings === 1 ? '' : 's'}`));
   if (report.infos) parts.push(pc.blue(`${report.infos} note${report.infos === 1 ? '' : 's'}`));
   log.info(parts.join(' · '));
 

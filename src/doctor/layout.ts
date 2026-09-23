@@ -1,4 +1,9 @@
-import { contrastRatio, meanLuminance, parseCssColor, relativeLuminance } from '../image/prepare.js';
+import {
+  contrastRatio,
+  meanLuminance,
+  parseCssColor,
+  relativeLuminance,
+} from '../image/prepare.js';
 import type { ProjectContext } from '../pipeline/context.js';
 import type { RenderedFrame } from '../render/renderer.js';
 import { KNOWN_SLOTS } from '../content/schema.js';

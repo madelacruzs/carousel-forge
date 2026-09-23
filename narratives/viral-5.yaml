@@ -15,7 +15,7 @@ roles:
     tone: >
       Blunt and specific. Second person or a number. No throat-clearing, no brand voice,
       no adjectives you would not say out loud. This slide is the whole post's audition.
-    example: "5 things i wish i knew before i started"
+    example: '5 things i wish i knew before i started'
     requires: [title]
     copy:
       title: { maxWords: 9, maxLines: 3 }
@@ -39,7 +39,7 @@ roles:
     tone: >
       One actionable point per slide. Lead with the verb. If it could be a screenshot
       in someone's notes app, it is working.
-    example: "start with the ugly version"
+    example: 'start with the ugly version'
     repeat: { min: 2, max: 8 }
     requires: [title]
     copy:
@@ -54,7 +54,7 @@ roles:
     tone: >
       Ask for exactly one thing. "Save this" and "comment a word" outperform "link in bio",
       because saves and comments are what the ranking rewards.
-    example: "save this for the next time you stall"
+    example: 'save this for the next time you stall'
     requires: [cta]
     copy:
       title: { maxWords: 9, maxLines: 2 }

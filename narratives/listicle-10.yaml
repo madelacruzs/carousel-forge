@@ -15,7 +15,7 @@ roles:
     tone: >
       State the number. The number is the promise, and the reader counts it down —
       that countdown is what keeps them swiping.
-    example: "9 things nobody tells you about going freelance"
+    example: '9 things nobody tells you about going freelance'
     requires: [title]
     copy:
       title: { maxWords: 10, maxLines: 3 }
@@ -26,7 +26,7 @@ roles:
     tone: >
       One point per slide, phrased as an instruction. Lead with the verb.
       If two points feel related, they are one point.
-    example: "charge for the revision, not the hour"
+    example: 'charge for the revision, not the hour'
     repeat: { min: 4, max: 18 }
     requires: [title]
     copy:
@@ -39,7 +39,7 @@ roles:
     layout: cta
     anchor: end
     tone: Lean on the fact that a list is a reference. "Save this" is the natural ask.
-    example: "save this before you quote your next job"
+    example: 'save this before you quote your next job'
     requires: [cta]
     copy:
       title: { maxWords: 9, maxLines: 2 }

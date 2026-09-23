@@ -65,6 +65,8 @@ export const hookSchema = z
     works_for: z.array(z.string().min(1)).default([]),
     /** Layout hint when the hook implies a particular visual, e.g. `split`. */
     visual: z.string().min(1).optional(),
+    /** A filled-in specimen, so an agent can see what "specific" looks like. */
+    example: z.string().min(1).optional(),
     notes: z.string().optional(),
   })
   .strict();

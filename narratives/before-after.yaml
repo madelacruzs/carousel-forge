@@ -15,7 +15,7 @@ roles:
     tone: >
       Let the images do the arguing. Two short labels, nothing clever.
       If the contrast needs a sentence to explain it, the images are wrong.
-    example: "what they see vs. what it actually is"
+    example: 'what they see vs. what it actually is'
     requires: [title]
     copy:
       title: { maxWords: 9, maxLines: 2 }
@@ -26,7 +26,7 @@ roles:
     purpose: be honest about the starting point
     layout: value
     tone: Specific and unflattering. Vagueness here reads as a humblebrag.
-    example: "three clients, none of them paying on time"
+    example: 'three clients, none of them paying on time'
     requires: [title]
 
   - id: turning-point
@@ -35,14 +35,14 @@ roles:
     tone: >
       One decision, one constraint, one habit. If you list three things,
       the reader believes none of them.
-    example: "i stopped taking work without a deposit"
+    example: 'i stopped taking work without a deposit'
     requires: [title]
 
   - id: after
     purpose: show the result, with a number if you have one
     layout: value
     tone: Concrete outcome. A defensible number beats an adjective every time.
-    example: "same hours. half the invoices chasing."
+    example: 'same hours. half the invoices chasing.'
     repeat: { min: 1, max: 4 }
     requires: [title]
 

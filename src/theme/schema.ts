@@ -22,7 +22,10 @@ export const fontRequestSchema = z
   .object({
     family: z.string().min(1),
     weights: z.array(z.number().int().min(100).max(900)).min(1).default([400]),
-    styles: z.array(z.enum(['normal', 'italic'])).min(1).default(['normal']),
+    styles: z
+      .array(z.enum(['normal', 'italic']))
+      .min(1)
+      .default(['normal']),
   })
   .strict();
 

@@ -69,5 +69,7 @@ export async function themesNewCommand(options: ThemesNewOptions): Promise<void>
 
   log.success(`created ${displayPath(target)} from "${options.from}"`);
   log.info('');
-  log.info(`edit ${pc.cyan(`themes/${name}/theme.css`)}, then set ${pc.cyan(`theme: ${name}`)} in carousel.yaml.`);
+  log.info(
+    `edit ${pc.cyan(`themes/${name}/theme.css`)}, then set ${pc.cyan(`theme: ${name}`)} in carousel.yaml.`,
+  );
 }

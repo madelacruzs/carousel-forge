@@ -145,7 +145,11 @@ export async function buildFrames(options: BuildFramesOptions): Promise<Frame[]>
       });
     }
     if (slide.imageB) {
-      const file = await assertAssetExists(slide.imageB, baseDir, `Second image for slide ${i + 1}`);
+      const file = await assertAssetExists(
+        slide.imageB,
+        baseDir,
+        `Second image for slide ${i + 1}`,
+      );
       images.secondary = await prepareImage({
         file,
         // Split layouts show two half-height panes.

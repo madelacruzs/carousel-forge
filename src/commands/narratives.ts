@@ -22,7 +22,9 @@ export async function narrativesListCommand(projectDir: string, verbose = false)
         const narrative = await loadNarrative(listing.name, projectDir);
         const range = slideCountRange(narrative);
         log.info(
-          pc.dim(`  ${range.min === range.max ? `${range.min} slides` : `${range.min}-${range.max} slides`}`),
+          pc.dim(
+            `  ${range.min === range.max ? `${range.min} slides` : `${range.min}-${range.max} slides`}`,
+          ),
         );
         for (const role of narrative.manifest.roles) {
           const { min, max } = repeatRange(role);
@@ -92,10 +94,9 @@ export async function narrativesNewCommand(options: NarrativesNewOptions): Promi
   await ensureDir(path.dirname(target));
   await writeText(
     target,
-    contents.replace(/^name:\s*.+$/m, `name: ${name}`).replace(
-      /^description:\s*.+$/m,
-      `description: Derived from ${options.from}.`,
-    ),
+    contents
+      .replace(/^name:\s*.+$/m, `name: ${name}`)
+      .replace(/^description:\s*.+$/m, `description: Derived from ${options.from}.`),
   );
   await fs.stat(target);
 

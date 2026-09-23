@@ -6,50 +6,68 @@
 #
 # An agent using skills/instagram-carousel/SKILL.md must propose three of these,
 # filled in, and let the user choose before any other copy gets written.
+#
+# `example` shows what a properly specific fill looks like. Copy the specificity,
+# not the words.
 
 - id: wish-i-knew
-  pattern: "{n} things I wish I knew before {topic}"
+  pattern: '{n} things I wish I knew before {topic}'
+  example: '4 things i wish i knew before renovating a 1920s kitchen'
   works_for: [educational, personal, retrospective]
   notes: Works because it is a confession, not a lecture. Use a real regret.
 
 - id: perception-vs-reality
-  pattern: "what they see vs. what it actually is"
+  pattern: 'what they see vs. what it actually is'
+  example: 'what the listing shows vs. what we found behind the drywall'
   works_for: [behind-the-scenes, personal, process]
   visual: split
   notes: Needs a split layout — two images, two labels. Pairs a polished shot with an honest one.
 
 - id: mistake
   pattern: "you're doing {thing} wrong. here's why."
+  example: "you're lighting your kitchen wrong. here's why."
   works_for: [educational, contrarian, technical]
   notes: Accusatory on purpose. Only use it if slide 2 immediately lets the reader off the hook.
 
 - id: contrarian
-  pattern: "stop {common_advice}. do {this} instead."
+  pattern: 'stop {common_advice}. do {this} instead.'
+  example: 'stop painting everything white. pick one warm neutral instead.'
   works_for: [contrarian, educational]
   notes: Requires that you actually disagree with the common advice. Fake contrarianism reads as bait.
 
 - id: number-drop
-  pattern: "{metric} in {timeframe}. without {obvious_shortcut}."
+  pattern: '{metric} in {timeframe}. without {obvious_shortcut}.'
+  example: 'booked out 6 months in one year. without a single ad.'
   works_for: [results, case-study, business]
   notes: Only with a number you can defend. Naming the shortcut you did not take is what makes it credible.
 
 - id: cost-of-inaction
   pattern: "{thing} is costing you {cost} and you can't see it"
+  example: 'your ceiling height is costing you every photo you take'
   works_for: [educational, business, persuasive]
+  notes: The cost has to be one they already half-suspect. If it needs explaining, it is not a hook.
 
 - id: insider-list
-  pattern: "{n} {things} nobody tells you about {topic}"
+  pattern: '{n} {things} nobody tells you about {topic}'
+  example: '5 costs nobody tells you about buying a heritage home'
   works_for: [educational, personal, industry]
+  notes: '"nobody tells you" is a promise of access. Do not follow it with public knowledge.'
 
 - id: question-direct
-  pattern: "why is {common_thing} so {unexpected_adjective}?"
+  pattern: 'why is {common_thing} so {unexpected_adjective}?'
+  example: 'why is every rental kitchen the same shade of beige?'
   works_for: [educational, curiosity, technical]
+  notes: Only works if the reader has genuinely wondered. Rhetorical questions they have not asked get scrolled.
 
 - id: before-after
   pattern: "{before_state} → {after_state}. here's what changed."
+  example: "empty shell → booked every weekend. here's what changed."
   works_for: [transformation, case-study, personal]
   visual: split
+  notes: The gap between the two states is the whole hook. If it is small, pick another formula.
 
 - id: permission
   pattern: "you're allowed to {thing_they_think_is_not_allowed}"
+  example: "you're allowed to leave a room unfinished for a year"
   works_for: [personal, mindset, community]
+  notes: Names a rule the audience has internalised and quietly resents. Get the rule wrong and it lands as nothing.

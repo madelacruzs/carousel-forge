@@ -24,7 +24,10 @@ export class PngTarget implements OutputTarget {
 
   async write(rendered: RenderedFrame): Promise<void> {
     const pattern = this.options.pattern ?? 'slide-{n}.png';
-    const name = pattern.replace('{n}', String(rendered.frame.slideNumber).padStart(this.width, '0'));
+    const name = pattern.replace(
+      '{n}',
+      String(rendered.frame.slideNumber).padStart(this.width, '0'),
+    );
     const file = path.join(this.options.outDir, name);
     await writeBinary(file, rendered.png);
     this.files.push(file);

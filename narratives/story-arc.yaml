@@ -24,14 +24,14 @@ roles:
     purpose: raise the stakes
     layout: quote
     tone: Say what it would have cost. Stakes are what make a story worth finishing.
-    example: "we had forty covers booked and no gas line"
+    example: 'we had forty covers booked and no gas line'
     requires: [title]
 
   - id: turn
     purpose: the moment it changed
     layout: value
     tone: One beat. Do not explain the lesson yet — let the reader get there first.
-    example: "we served the whole first night off two induction plates"
+    example: 'we served the whole first night off two induction plates'
     repeat: { min: 1, max: 4 }
     requires: [title]
 
@@ -39,7 +39,7 @@ roles:
     purpose: land the outcome
     layout: value
     tone: Plain and unembellished. The restraint is what makes it believable.
-    example: "nobody noticed. the room was full."
+    example: 'nobody noticed. the room was full.'
     requires: [title]
 
   - id: lesson

@@ -6,7 +6,9 @@ body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
-  font-feature-settings: 'kern' 1, 'liga' 1;
+  font-feature-settings:
+    'kern' 1,
+    'liga' 1;
 }
 
 .slide {
@@ -293,8 +295,13 @@ body {
 .scrim--split {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0) 22%,
-      rgba(0, 0, 0, 0) 52%, rgba(0, 0, 0, 0.82) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.35) 0%,
+    rgba(0, 0, 0, 0) 22%,
+    rgba(0, 0, 0, 0) 52%,
+    rgba(0, 0, 0, 0.82) 100%
+  );
 }
 
 .layout-split .title {

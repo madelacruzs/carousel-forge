@@ -5,8 +5,8 @@ theme: warm-editorial
 narrative: viral-5
 
 brand:
-  handle: "@yourhandle"
-  accent: "#E8C47A"
+  handle: '@yourhandle'
+  accent: '#E8C47A'
 
 defaults:
   overlay: 0.55
@@ -19,7 +19,7 @@ slides:
     title: |
       5 things i wish i knew
       before i started
-    cta: ""
+    cta: ''
 
   # 2 — agitation. Make them think "this is me".
   - image: images/clay.jpg
@@ -29,16 +29,16 @@ slides:
 
   # 3 — value.
   - image: images/linen.jpg
-    title: "start with the ugly version"
-    body: "a rough first pass you can react to beats a perfect plan you never begin."
+    title: 'start with the ugly version'
+    body: 'a rough first pass you can react to beats a perfect plan you never begin.'
 
   # 4 — value.
   - image: images/ember.jpg
-    title: "one decision per session"
-    body: "decide the next thing, not the whole thing."
+    title: 'one decision per session'
+    body: 'decide the next thing, not the whole thing.'
 
   # 5 — call to action.
   - layout: cta
-    title: "save this for the next time you stall"
-    cta: "save this post"
-    note: "more like this every week"
+    title: 'save this for the next time you stall'
+    cta: 'save this post'
+    note: 'more like this every week'

@@ -3,12 +3,7 @@ import { parse as parseYaml, YAMLParseError } from 'yaml';
 import { formatZodError } from '../content/load.js';
 import { ForgeError } from '../errors.js';
 import { displayPath, listFiles, packageRoot, pathExists, readText } from '../util/fs.js';
-import {
-  hooksFileSchema,
-  narrativeSchema,
-  type Hook,
-  type NarrativeManifest,
-} from './schema.js';
+import { hooksFileSchema, narrativeSchema, type Hook, type NarrativeManifest } from './schema.js';
 
 export interface Narrative {
   manifest: NarrativeManifest;

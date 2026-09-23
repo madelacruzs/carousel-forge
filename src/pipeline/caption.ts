@@ -41,7 +41,8 @@ export function renderCaptionScaffold(carousel: Carousel, frames: Frame[]): stri
     '',
     '# Caption',
     '',
-    caption?.text?.trim() || `${PLACEHOLDER} write the caption: one hook line, a short payoff, then the CTA.`,
+    caption?.text?.trim() ||
+      `${PLACEHOLDER} write the caption: one hook line, a short payoff, then the CTA.`,
     '',
     '## Slide outline',
     '',

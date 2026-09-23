@@ -128,7 +128,11 @@ const PROBE_SCRIPT = () => {
       fontSize,
       lineHeight,
       lineCount:
-        boxes.length > 0 ? boxes.length : rect.height > 0 ? Math.round(rect.height / lineHeight) : 0,
+        boxes.length > 0
+          ? boxes.length
+          : rect.height > 0
+            ? Math.round(rect.height / lineHeight)
+            : 0,
       clipped,
     });
   }

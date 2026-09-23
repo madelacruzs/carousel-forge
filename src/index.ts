@@ -22,12 +22,23 @@ export type { Tokens, TokenValue } from './theme/tokens.js';
 export * from './narrative/schema.js';
 export { loadNarrative, listNarratives, loadHooks } from './narrative/load.js';
 export type { Narrative, NarrativeListing } from './narrative/load.js';
-export { assignRoles, budgetFor, expandRoles, slideCountRange, repeatRange } from './narrative/resolve.js';
+export {
+  assignRoles,
+  budgetFor,
+  expandRoles,
+  slideCountRange,
+  repeatRange,
+} from './narrative/resolve.js';
 export type { RoleAssignment } from './narrative/resolve.js';
 
 export { coverCrop, coverScale, hasEnoughResolution } from './image/crop.js';
 export type { CropRect, Size } from './image/crop.js';
-export { prepareImage, clearImageCache, contrastRatio, relativeLuminance } from './image/prepare.js';
+export {
+  prepareImage,
+  clearImageCache,
+  contrastRatio,
+  relativeLuminance,
+} from './image/prepare.js';
 export type { PreparedImage } from './image/prepare.js';
 
 export { buildFrames, padIndex, splitTitle } from './render/frame.js';
@@ -47,5 +58,12 @@ export { loadProject, defaultConfigPath } from './pipeline/context.js';
 export type { ProjectContext } from './pipeline/context.js';
 export { renderCaptionScaffold } from './pipeline/caption.js';
 
-export { doctor, auditCopy, auditLayout, detectHook, looksLikeCta, patternToRegex } from './doctor/index.js';
+export {
+  doctor,
+  auditCopy,
+  auditLayout,
+  detectHook,
+  looksLikeCta,
+  patternToRegex,
+} from './doctor/index.js';
 export type { Diagnostic, DiagnosticLevel, DoctorReport } from './doctor/types.js';

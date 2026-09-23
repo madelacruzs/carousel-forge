@@ -47,7 +47,9 @@ const SIGNALS: { name: string; test: (text: string) => boolean }[] = [
   {
     name: 'promises a payoff',
     test: (t) =>
-      /\b(how to|here's|heres|why|what|secret|mistake|lesson|wish i|before you|things i)\b/i.test(t),
+      /\b(how to|here's|heres|why|what|secret|mistake|lesson|wish i|before you|things i)\b/i.test(
+        t,
+      ),
   },
   {
     name: 'sets up a contrast',
