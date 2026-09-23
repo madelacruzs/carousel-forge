@@ -6,6 +6,13 @@ import { thumbnailFontSize } from './hooks.js';
 import type { Diagnostic } from './types.js';
 
 /**
+ * Slots the audience actually reads, as opposed to chrome like the slide
+ * number or the handle. Checks that exist to protect comprehension apply to
+ * these; checks that would only nag about decoration do not.
+ */
+const READING_SLOTS = new Set(['title', 'body', 'bullets', 'cta']);
+
+/**
  * Layout checks run against the *rendered* page rather than the source.
  *
  * Text boxes, colours and line counts come from the live DOM, and the
@@ -64,14 +71,30 @@ export async function auditLayout(
       }
 
       // --- readable at thumbnail size --------------------------------------
-      const thumb = thumbnailFontSize(probe.fontSize, canvas.w);
-      if (probe.readable && probe.text.length > 0 && thumb > 0 && thumb < 4.2) {
+      // Only the title has to survive a grid preview. Body copy is read after
+      // the tap, so holding it to the same bar would be noise, not a finding.
+      if (probe.slot === 'title' && probe.text.length > 0) {
+        const thumb = thumbnailFontSize(probe.fontSize, canvas.w);
+        if (thumb > 0 && thumb < 4.2) {
+          diagnostics.push({
+            level: 'warn',
+            code: 'layout/thumbnail-legibility',
+            slide: slideNumber,
+            message: `the title renders at ${Math.round(probe.fontSize)}px, about ${thumb.toFixed(1)}px in a grid preview.`,
+            hint: 'people decide whether to open a post from the thumbnail. A title this small cannot do that job.',
+          });
+        }
+      }
+
+      // --- readable on the phone at all -------------------------------------
+      const minReadable = canvas.w * 0.0185; // ~20px on a 1080 canvas
+      if (READING_SLOTS.has(probe.slot) && probe.text.length > 0 && probe.fontSize < minReadable) {
         diagnostics.push({
           level: 'warn',
-          code: 'layout/thumbnail-legibility',
+          code: 'layout/small-text',
           slide: slideNumber,
-          message: `"${probe.slot}" renders at ${Math.round(probe.fontSize)}px, about ${thumb.toFixed(1)}px in a grid preview.`,
-          hint: 'people decide whether to open a post from the thumbnail. Anything smaller than this is decoration, not communication.',
+          message: `"${probe.slot}" renders at ${Math.round(probe.fontSize)}px, under the ~${Math.round(minReadable)}px this canvas needs.`,
+          hint: 'a carousel is read at arm\u2019s length on a phone. Cut the copy instead of shrinking the type.',
         });
       }
 
@@ -86,9 +109,10 @@ export async function auditLayout(
           height: probe.height,
         });
         const ratio = contrastRatio(textLuminance, backgroundLuminance);
-        // WCAG large-text threshold; carousel type is nearly always large.
-        const isLarge = probe.fontSize >= 24;
-        const threshold = isLarge ? 3 : 4.5;
+        // Copy the audience has to read is held to WCAG. Chrome — the slide
+        // number, the handle, labels — is allowed to recede, so it only has to
+        // clear the large-text bar.
+        const threshold = READING_SLOTS.has(probe.slot) && probe.fontSize < 24 ? 4.5 : 3;
         if (ratio < threshold) {
           diagnostics.push({
             level: 'warn',
@@ -98,6 +122,35 @@ export async function auditLayout(
             hint: 'raise overlay: on this slide, move the focal point to a darker part of the photo, or pick a different image.',
           });
         }
+      }
+    }
+
+    // --- slots colliding with each other ------------------------------------
+    for (let a = 0; a < item.probes.length; a += 1) {
+      for (let b = a + 1; b < item.probes.length; b += 1) {
+        const one = item.probes[a];
+        const two = item.probes[b];
+        if (!one || !two) continue;
+        if (one.text.length === 0 || two.text.length === 0) continue;
+        if (one.width <= 0 || one.height <= 0 || two.width <= 0 || two.height <= 0) continue;
+
+        const overlapW = Math.min(one.x + one.width, two.x + two.width) - Math.max(one.x, two.x);
+        const overlapH = Math.min(one.y + one.height, two.y + two.height) - Math.max(one.y, two.y);
+        if (overlapW <= 2 || overlapH <= 2) continue;
+
+        // A slot nested inside another one is the theme's business, not a bug.
+        const area = overlapW * overlapH;
+        const smallest = Math.min(one.width * one.height, two.width * two.height);
+        if (area / smallest > 0.9) continue;
+        if (area / smallest < 0.06) continue;
+
+        diagnostics.push({
+          level: 'error',
+          code: 'layout/overlap',
+          slide: slideNumber,
+          message: `"${one.slot}" and "${two.slot}" overlap by ${Math.round(overlapW)}x${Math.round(overlapH)}px.`,
+          hint: 'one of them has outgrown its space. Cut the longer of the two — the theme is not going to reflow around it.',
+        });
       }
     }
 

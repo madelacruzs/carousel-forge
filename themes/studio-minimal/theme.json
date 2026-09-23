@@ -1,0 +1,53 @@
+{
+  "name": "studio-minimal",
+  "description": "High-end product and interior look. Light wash over the photo, faint structural rules, a serif headline at the optical centre with an optional accent highlight.",
+  "canvas": { "w": 1080, "h": 1350 },
+  "safeArea": { "top": 72, "right": 72, "bottom": 96, "left": 72 },
+  "tokens": {
+    "accent": "#C9A227",
+    "ink": "#F6F3EE",
+    "inkMuted": "rgba(246,243,238,0.66)",
+    "paper": "#16161A",
+    "wash": "linear-gradient(160deg, rgba(255,255,255,0.14) 0%, rgba(0,0,0,0.28) 45%, rgba(0,0,0,0.62) 100%)",
+    "rule": "rgba(246,243,238,0.14)",
+    "fontDisplay": "Cormorant Garamond",
+    "fontBody": "Inter",
+    "titleSize": "96px",
+    "titleLeading": "1.02",
+    "titleTracking": "0.015em",
+    "bodySize": "26px",
+    "bodyLeading": "1.7"
+  },
+  "slots": [
+    "eyebrow",
+    "title",
+    "body",
+    "bullets",
+    "cta",
+    "note",
+    "index",
+    "logo",
+    "handle",
+    "highlight",
+    "labelA",
+    "labelB"
+  ],
+  "layouts": ["default", "hook", "value", "quote", "split", "cta"],
+  "fonts": [
+    { "family": "Cormorant Garamond", "weights": [300, 400, 500], "styles": ["normal", "italic"] },
+    { "family": "Inter", "weights": [400, 500, 600], "styles": ["normal"] }
+  ],
+  "lineBudget": {
+    "title": { "maxLines": 3 },
+    "body": { "maxLines": 4 }
+  },
+  "motion": {
+    "duration": 4,
+    "fps": 30,
+    "transition": "slow-pan",
+    "slots": {
+      "title": { "in": "fade", "delay": 0.2, "duration": 0.8 },
+      "eyebrow": { "in": "fade", "delay": 0, "duration": 0.4 }
+    }
+  }
+}

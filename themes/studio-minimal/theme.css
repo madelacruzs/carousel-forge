@@ -1,0 +1,394 @@
+/* ============================================================================
+   studio-minimal
+   A gallery wall, not a billboard. The photo stays bright, the type stays
+   quiet, and a faint grid does the work that a heavy overlay would otherwise do.
+   ========================================================================== */
+
+.slide {
+  position: absolute;
+  inset: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body), system-ui, sans-serif;
+  overflow: hidden;
+}
+
+/* --- photograph ---------------------------------------------------------- */
+
+.photo {
+  position: absolute;
+  inset: 0;
+  background-image: var(--image);
+  background-size: cover;
+  background-position: center;
+}
+
+/* A wash, not a blackout: the product still has to look expensive. Even at
+   overlay: 1 this never fully buries the photograph — that is the point of
+   the theme. Reach for warm-editorial if you need the text to dominate. */
+.wash {
+  position: absolute;
+  inset: 0;
+  background: var(--wash);
+  opacity: calc(0.34 + (var(--overlay-strength) * 0.42));
+}
+
+/* --- structural rules ---------------------------------------------------- */
+
+.grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.rule {
+  position: absolute;
+  background: var(--rule);
+}
+
+.rule--v {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+}
+.rule--h {
+  left: 0;
+  right: 0;
+  height: 1px;
+}
+
+.rule--v1 {
+  left: var(--safe-left);
+}
+.rule--v2 {
+  right: var(--safe-right);
+}
+.rule--h1 {
+  top: calc(var(--safe-top) + 74px);
+}
+.rule--h2 {
+  bottom: calc(var(--safe-bottom) + 118px);
+}
+
+/* --- header -------------------------------------------------------------- */
+
+.head {
+  position: absolute;
+  top: var(--safe-top);
+  left: var(--safe-left);
+  right: var(--safe-right);
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* the accent square bullet */
+.bullet {
+  width: 10px;
+  height: 10px;
+  background: var(--accent);
+  flex: none;
+}
+
+.eyebrow {
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.social {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: var(--ink-muted);
+}
+
+.social svg {
+  display: block;
+}
+
+.index {
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  color: var(--accent);
+}
+
+/* --- content at the optical centre --------------------------------------- */
+
+/* Optical centre sits above the geometric one, or the slide looks like it is
+   sliding off the bottom of the frame. */
+.content {
+  position: absolute;
+  top: 50%;
+  left: var(--safe-left);
+  right: var(--safe-right);
+  transform: translateY(-56%);
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 400;
+  font-size: var(--title-size);
+  line-height: var(--title-leading);
+  letter-spacing: var(--title-tracking);
+  font-feature-settings:
+    'liga' 1,
+    'dlig' 1,
+    'calt' 1,
+    'kern' 1;
+  color: var(--ink);
+  max-width: 17ch;
+}
+
+.title .line {
+  display: block;
+}
+
+/* the optional highlight block behind one word */
+.title mark {
+  background: var(--accent);
+  color: var(--paper);
+  padding: 0 0.16em 0.06em;
+  margin: 0 -0.06em;
+  border-radius: 2px;
+}
+
+.body {
+  max-width: 34ch;
+}
+
+.body p {
+  margin: 0 0 12px;
+  font-size: var(--body-size);
+  line-height: var(--body-leading);
+  color: var(--ink-muted);
+  font-weight: 400;
+}
+
+.body p:last-child {
+  margin-bottom: 0;
+}
+
+.bullets {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-width: 34ch;
+}
+
+.bullets li {
+  position: relative;
+  padding-left: 26px;
+  margin-bottom: 16px;
+  font-size: var(--body-size);
+  line-height: 1.5;
+  color: var(--ink-muted);
+}
+
+.bullets li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+}
+
+.cta {
+  margin: 0;
+  font-size: 25px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+}
+
+.cta--inline::after {
+  content: ' \2192';
+}
+
+/* --- footer -------------------------------------------------------------- */
+
+.foot {
+  position: absolute;
+  left: var(--safe-left);
+  right: var(--safe-right);
+  bottom: var(--safe-bottom);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 48px;
+}
+
+.logo {
+  height: 44px;
+  width: auto;
+  opacity: 0.92;
+}
+
+.foot-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.wordmark {
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+/* Fine print is justified on purpose — it reads as a caption in a catalogue. */
+.fineprint {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 17px;
+  line-height: 1.6;
+  text-align: justify;
+  hyphens: auto;
+  color: var(--ink-muted);
+}
+
+.fineprint--center {
+  text-align: center;
+  max-width: 40ch;
+}
+
+/* --- layout: hook -------------------------------------------------------- */
+
+.layout-hook .title {
+  font-size: calc(var(--title-size) * 1.2);
+  max-width: 13ch;
+}
+
+.layout-hook .wash {
+  opacity: calc(0.42 + (var(--overlay-strength) * 0.44));
+}
+
+/* --- layout: quote ------------------------------------------------------- */
+
+.layout-quote .content {
+  transform: translateY(-50%);
+}
+
+.layout-quote .title {
+  font-style: italic;
+  font-size: calc(var(--title-size) * 1.05);
+  max-width: 17ch;
+}
+
+.layout-quote .title .line:first-child::before {
+  content: '\201C';
+  margin-left: -0.26em;
+  color: var(--accent);
+}
+
+/* --- layout: split ------------------------------------------------------- */
+
+.split {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.split-pane {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+
+.split-pane + .split-pane {
+  border-top: 1px solid var(--rule);
+}
+
+.split-photo {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+
+.split-photo--a {
+  background-image: var(--image);
+}
+.split-photo--b {
+  background-image: var(--image-b);
+}
+
+.split-label {
+  position: absolute;
+  left: var(--safe-left);
+  bottom: 28px;
+  margin: 0;
+  font-size: 23px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.layout-split .content {
+  top: auto;
+  bottom: calc(var(--safe-bottom) + 96px);
+  transform: none;
+}
+
+.layout-split .title {
+  font-size: calc(var(--title-size) * 0.66);
+}
+
+.layout-split .rule--h1,
+.layout-split .rule--h2 {
+  display: none;
+}
+
+/* --- layout: cta --------------------------------------------------------- */
+
+.layout-cta .slide {
+  background: var(--paper);
+}
+
+.cta-stack {
+  position: absolute;
+  inset: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 30px;
+}
+
+.cta-logo {
+  height: 82px;
+  width: auto;
+  margin-bottom: 8px;
+}
+
+.title--cta {
+  max-width: 16ch;
+  text-align: center;
+}
+
+.hair {
+  width: 96px;
+  height: 1px;
+  background: var(--accent);
+}

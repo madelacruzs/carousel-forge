@@ -1,0 +1,406 @@
+/* ============================================================================
+   poster
+   Built like a printed announcement: one headline, one rule, one narrow
+   column of copy, and a bar along the bottom. Works as a single slide or as
+   a whole carousel of them.
+   ========================================================================== */
+
+.slide {
+  position: absolute;
+  inset: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body), system-ui, sans-serif;
+  overflow: hidden;
+}
+
+/* --- ground -------------------------------------------------------------- */
+
+.photo {
+  position: absolute;
+  inset: 0;
+  background-image: var(--image);
+  background-size: cover;
+  background-position: center;
+}
+
+.veil {
+  position: absolute;
+  inset: 0;
+  background: var(--overlay);
+  opacity: calc(0.4 + (var(--overlay-strength) * 0.46));
+}
+
+.glow {
+  position: absolute;
+  inset: 0;
+  background: var(--paper-glow);
+}
+
+/* --- corner frame -------------------------------------------------------- */
+
+.frame {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.corner {
+  position: absolute;
+  width: 56px;
+  height: 56px;
+  border: 1px solid var(--rule);
+}
+
+.corner--tl {
+  top: 40px;
+  left: 40px;
+  border-right: 0;
+  border-bottom: 0;
+}
+.corner--tr {
+  top: 40px;
+  right: 40px;
+  border-left: 0;
+  border-bottom: 0;
+}
+.corner--bl {
+  bottom: 40px;
+  left: 40px;
+  border-right: 0;
+  border-top: 0;
+}
+.corner--br {
+  bottom: 40px;
+  right: 40px;
+  border-left: 0;
+  border-top: 0;
+}
+
+/* --- sparkles ------------------------------------------------------------ */
+
+.sparkles {
+  position: absolute;
+  inset: 0;
+  color: var(--accent);
+  pointer-events: none;
+}
+
+.sparkle {
+  position: absolute;
+  opacity: 0.55;
+}
+
+.sparkle--1 {
+  top: 268px;
+  right: 132px;
+}
+.sparkle--2 {
+  top: 342px;
+  right: 92px;
+  opacity: 0.38;
+}
+.sparkle--3 {
+  top: 232px;
+  right: 190px;
+  opacity: 0.3;
+}
+
+/* --- mark ---------------------------------------------------------------- */
+
+.mark {
+  position: absolute;
+  top: var(--safe-top);
+  left: var(--safe-left);
+  right: var(--safe-right);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.logo {
+  height: 62px;
+  width: auto;
+}
+
+.wordmark {
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.index {
+  position: absolute;
+  top: 4px;
+  right: 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 26px;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+}
+
+/* --- the sheet ----------------------------------------------------------- */
+
+/* Anchored to the bottom bar rather than centred, so a short headline and a
+   long one both keep the same relationship to the rule and the copy. */
+.sheet {
+  position: absolute;
+  left: var(--safe-left);
+  right: var(--safe-right);
+  bottom: calc(var(--safe-bottom) + 118px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.headline {
+  margin: 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 500;
+  font-size: var(--headline-size);
+  line-height: var(--headline-leading);
+  letter-spacing: -0.015em;
+  font-feature-settings:
+    'liga' 1,
+    'dlig' 1,
+    'kern' 1;
+  color: var(--ink);
+  max-width: 11ch;
+}
+
+.headline .line {
+  display: block;
+}
+
+.headline em {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.hr {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  height: 1px;
+  background: var(--rule);
+  margin: 40px 0 34px;
+}
+
+.subtitle {
+  margin: 0 0 20px;
+  font-size: 29px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+  color: var(--accent);
+  max-width: 24ch;
+}
+
+.body {
+  max-width: 36ch;
+}
+
+.body p {
+  margin: 0 0 10px;
+  font-size: var(--body-size);
+  line-height: var(--body-leading);
+  color: var(--ink-muted);
+}
+
+.body p:last-child {
+  margin-bottom: 0;
+}
+
+.bullets {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  max-width: 36ch;
+}
+
+.bullets li {
+  position: relative;
+  padding-left: 28px;
+  margin-bottom: 12px;
+  font-size: var(--body-size);
+  line-height: 1.5;
+  color: var(--ink-muted);
+}
+
+.bullets li::before {
+  content: '\2014';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+
+.note {
+  margin: 22px 0 0;
+  font-size: 17px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+/* --- bottom bar ---------------------------------------------------------- */
+
+.bar {
+  position: absolute;
+  left: var(--safe-left);
+  right: var(--safe-right);
+  bottom: var(--safe-bottom);
+  padding-top: 26px;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  min-height: 46px;
+}
+
+.cta,
+.url {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 23px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.cta {
+  color: var(--accent);
+}
+
+.url {
+  color: var(--ink-muted);
+  letter-spacing: 0.1em;
+}
+
+.cta svg,
+.url svg {
+  display: block;
+  flex: none;
+}
+
+/* --- layout: hook -------------------------------------------------------- */
+
+.layout-hook .headline {
+  font-size: calc(var(--headline-size) * 1.08);
+}
+
+/* --- layout: quote ------------------------------------------------------- */
+
+.layout-quote .headline {
+  font-style: italic;
+  font-size: calc(var(--headline-size) * 0.82);
+  max-width: 14ch;
+}
+
+/* --- layout: value ------------------------------------------------------- */
+
+.layout-value .headline {
+  font-size: calc(var(--headline-size) * 0.72);
+  max-width: 15ch;
+}
+
+/* --- layout: split ------------------------------------------------------- */
+
+.split {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.split-pane {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+
+.split-photo {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+
+.split-photo--a {
+  background-image: var(--image);
+}
+.split-photo--b {
+  background-image: var(--image-b);
+}
+
+.split-label {
+  position: absolute;
+  left: var(--safe-left);
+  top: 28px;
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.layout-split .headline {
+  font-size: calc(var(--headline-size) * 0.6);
+  max-width: 16ch;
+}
+
+.layout-split .sparkles,
+.layout-split .frame {
+  display: none;
+}
+
+/* --- layout: cta --------------------------------------------------------- */
+
+.layout-cta .veil,
+.layout-cta .photo {
+  display: none;
+}
+
+.layout-cta .mark {
+  align-items: center;
+  left: 0;
+  right: 0;
+}
+
+.layout-cta .index {
+  right: var(--safe-right);
+}
+
+.layout-cta .sheet {
+  left: 0;
+  right: 0;
+  bottom: calc(var(--safe-bottom) + 150px);
+  align-items: center;
+  text-align: center;
+  padding: 0 var(--safe-left);
+}
+
+.layout-cta .headline {
+  max-width: 13ch;
+}
+
+.layout-cta .hr {
+  margin: 36px auto 30px;
+  max-width: 120px;
+  background: var(--accent);
+}
+
+.layout-cta .subtitle,
+.layout-cta .body {
+  max-width: 30ch;
+}
+
+.layout-cta .bar {
+  justify-content: center;
+  gap: 56px;
+}

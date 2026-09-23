@@ -22,8 +22,6 @@ export interface SlotProbe {
   lineCount: number;
   /** `true` when the content is pushed outside whatever clips it. */
   clipped: boolean;
-  /** `true` for slots the audience is meant to read, as opposed to chrome. */
-  readable: boolean;
 }
 
 export interface RenderedFrame {
@@ -52,8 +50,6 @@ const DETERMINISTIC_ARGS = [
 ];
 
 const PROBE_SCRIPT = () => {
-  const READABLE = new Set(['title', 'body', 'bullets', 'cta', 'eyebrow']);
-
   /** Nearest ancestor that would actually clip overflowing content. */
   const clipAncestor = (start: Element): Element | null => {
     let node: Element | null = start;
@@ -134,7 +130,6 @@ const PROBE_SCRIPT = () => {
       lineCount:
         boxes.length > 0 ? boxes.length : rect.height > 0 ? Math.round(rect.height / lineHeight) : 0,
       clipped,
-      readable: READABLE.has(el.getAttribute('data-slot') || ''),
     });
   }
   return out;
