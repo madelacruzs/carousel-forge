@@ -138,7 +138,27 @@ export async function ensureGoogleFonts(requests: FontRequest[]): Promise<FontFa
 
   // De-duplicate: a face may have been counted both as cached and as fetched.
   const unique = new Map(available.map((f) => [`${f.family}|${f.weight}|${f.style}`, f]));
-  return [...unique.values()];
+  return sortFaces([...unique.values()]);
+}
+
+/**
+ * Order faces by family, then weight, then style.
+ *
+ * This is load-bearing for determinism, not tidiness. A warm cache collects
+ * faces in `weights x styles` order; a cold cache collects them in whatever
+ * order Google's CSS happens to list them. Without a canonical sort the two
+ * produce the same faces in a different order, the `@font-face` rules are
+ * emitted in a different order, and the first build on a cold machine can
+ * resolve a weight differently from every build after it. That is a
+ * once-per-machine difference, which is the hardest kind to reproduce.
+ */
+function sortFaces(faces: FontFace[]): FontFace[] {
+  return [...faces].sort(
+    (a, b) =>
+      a.family.localeCompare(b.family, 'en') ||
+      a.weight - b.weight ||
+      a.style.localeCompare(b.style, 'en'),
+  );
 }
 
 /** Read any font files a theme ships in its own `fonts/` directory. */
@@ -168,7 +188,10 @@ const MIME_BY_EXT: Record<string, string> = {
 /** Build a block of `@font-face` rules with the font bytes inlined. */
 export async function fontFaceCss(faces: FontFace[]): Promise<string> {
   const rules: string[] = [];
-  for (const face of faces) {
+  // Sort at the point of emission too: theme-owned faces are concatenated with
+  // Google ones, and the CSS this returns must not depend on how that list was
+  // assembled.
+  for (const face of sortFaces(faces)) {
     let bytes: Buffer;
     try {
       bytes = await fs.readFile(face.file);
