@@ -17,4 +17,18 @@ export default tseslint.config(
       'no-console': 'off',
     },
   },
+  {
+    files: ['**/*.{js,mjs,cjs}'],
+    languageOptions: {
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        Buffer: 'readonly',
+        URL: 'readonly',
+        fetch: 'readonly',
+        __dirname: 'readonly',
+        setTimeout: 'readonly',
+      },
+    },
+  },
 );

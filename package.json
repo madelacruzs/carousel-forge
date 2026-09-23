@@ -22,6 +22,7 @@
   "files": [
     "dist",
     "themes",
+    "narratives",
     "skills",
     "README.md",
     "LICENSE"
@@ -50,6 +51,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
     "prepublishOnly": "npm run build"

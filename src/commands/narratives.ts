@@ -55,6 +55,7 @@ export async function hooksListCommand(projectDir: string): Promise<void> {
   for (const hook of hooks) {
     log.info(`${pc.bold(hook.id)}`);
     log.info(`  ${hook.pattern}`);
+    if (hook.example) log.info(pc.dim(`  e.g. ${hook.example}`));
     const tags = [
       ...(hook.works_for.length > 0 ? [`works for: ${hook.works_for.join(', ')}`] : []),
       ...(hook.visual ? [`needs a "${hook.visual}" layout`] : []),
