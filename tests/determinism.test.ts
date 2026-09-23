@@ -41,6 +41,50 @@ function sha(buffer: Buffer): string {
   return createHash('sha256').update(buffer).digest('hex');
 }
 
+/**
+ * "The bytes differ" is useless on a CI machine you cannot poke at. Say where
+ * and by how much instead: a photograph that failed to paint covers the frame,
+ * a font that fell back moves a few small boxes, and a colour-management
+ * difference shifts every pixel by a little.
+ */
+async function describe(a: Buffer, b: Buffer): Promise<string> {
+  const [ra, rb] = await Promise.all(
+    [a, b].map((buf) => sharp(buf).raw().toBuffer({ resolveWithObject: true })),
+  );
+  if (!ra || !rb) return 'could not decode one of the two PNGs';
+  const { width, height, channels } = ra.info;
+  let differing = 0;
+  let maxDelta = 0;
+  let sumDelta = 0;
+  let minX = width;
+  let minY = height;
+  let maxX = -1;
+  let maxY = -1;
+  for (let i = 0; i < ra.data.length; i += channels) {
+    let delta = 0;
+    for (let c = 0; c < channels; c += 1) {
+      delta = Math.max(delta, Math.abs((ra.data[i + c] ?? 0) - (rb.data[i + c] ?? 0)));
+    }
+    if (delta === 0) continue;
+    differing += 1;
+    sumDelta += delta;
+    maxDelta = Math.max(maxDelta, delta);
+    const pixel = i / channels;
+    const x = pixel % width;
+    const y = Math.floor(pixel / width);
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+  }
+  const percent = ((differing / (width * height)) * 100).toFixed(2);
+  return [
+    `${differing} of ${width * height} pixels (${percent}%)`,
+    `max channel delta ${maxDelta}, mean ${(sumDelta / Math.max(differing, 1)).toFixed(1)}`,
+    `bounding box ${minX},${minY} to ${maxX},${maxY}`,
+  ].join('; ');
+}
+
 /** A flat, fully deterministic source photo. */
 async function photo(file: string, rgb: [number, number, number]): Promise<void> {
   const png = await sharp({
@@ -92,7 +136,9 @@ describe('determinism', () => {
       const twin = path.join(dir, 'out-2', path.basename(file));
       const a = await fs.readFile(file);
       const b = await fs.readFile(twin);
-      expect(sha(b), `${path.basename(file)} differs between runs`).toBe(sha(a));
+      if (sha(a) !== sha(b)) {
+        throw new Error(`${path.basename(file)} differs between runs: ${await describe(a, b)}`);
+      }
     }
 
     const sheetA = await fs.readFile(path.join(dir, 'out-1', 'contact-sheet.png'));
