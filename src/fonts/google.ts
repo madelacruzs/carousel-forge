@@ -106,8 +106,8 @@ async function commitFont(file: string, bytes: Buffer): Promise<void> {
  * reported and skipped so a build never hard-fails on a network hiccup.
  */
 export async function ensureGoogleFonts(requests: FontRequest[]): Promise<FontFace[]> {
-  const available: FontFace[] = [];
-  const missing: FontRequest[] = [];
+  const wantedByRequest: { request: FontRequest; wanted: FontFace[] }[] = [];
+  const missing = new Set<FontRequest>();
 
   for (const request of requests) {
     const wanted: FontFace[] = [];
@@ -121,17 +121,18 @@ export async function ensureGoogleFonts(requests: FontRequest[]): Promise<FontFa
         });
       }
     }
-    const absent = [];
+    wantedByRequest.push({ request, wanted });
     for (const face of wanted) {
-      if (await pathExists(face.file)) available.push(face);
-      else absent.push(face);
+      if (!(await pathExists(face.file))) {
+        missing.add(request);
+        break;
+      }
     }
-    if (absent.length > 0) missing.push(request);
   }
 
-  if (missing.length === 0) return available;
-
-  await ensureDir(fontCacheDir());
+  if (missing.size > 0) {
+    await ensureDir(fontCacheDir());
+  }
   for (const request of missing) {
     try {
       const css = await download(css2Url(request), {
@@ -147,7 +148,7 @@ export async function ensureGoogleFonts(requests: FontRequest[]): Promise<FontFa
       // machine finds those files cached and renders the real glyphs. Same
       // inputs, different pixels, and only ever on the first build after a
       // network hiccup - the hardest possible thing to reproduce.
-      const staged: { face: FontFace; bytes: Buffer }[] = [];
+      const staged: { file: string; bytes: Buffer }[] = [];
       for (const face of parseGoogleCss(css)) {
         if (!request.weights.includes(face.weight)) continue;
         if (!request.styles.includes(face.style)) continue;
@@ -157,15 +158,11 @@ export async function ensureGoogleFonts(requests: FontRequest[]): Promise<FontFa
         if (!looksLikeFont(bytes)) {
           throw new Error(`${face.url} did not return a font file`);
         }
-        staged.push({
-          face: { family: request.family, weight: face.weight, style: face.style, file },
-          bytes,
-        });
+        staged.push({ file, bytes });
       }
 
-      for (const { face, bytes } of staged) {
-        await commitFont(face.file, bytes);
-        available.push(face);
+      for (const { file, bytes } of staged) {
+        await commitFont(file, bytes);
       }
     } catch (error) {
       log.warn(
@@ -175,9 +172,31 @@ export async function ensureGoogleFonts(requests: FontRequest[]): Promise<FontFa
     }
   }
 
-  // De-duplicate: a face may have been counted both as cached and as fetched.
-  const unique = new Map(available.map((f) => [`${f.family}|${f.weight}|${f.style}`, f]));
-  return sortFaces([...unique.values()]);
+  // Resolve the final list from the cache directory rather than from what this
+  // call happened to download.
+  //
+  // Two builds can run against the same cache at once - parallel test workers
+  // are the obvious case - and then a face this call decided was absent can be
+  // written by the other process a moment later. Tracking availability as we
+  // go drops exactly those faces: the scan says "absent", the download loop
+  // says "already there, skip", and the face ends up in neither list, so the
+  // page is served a family with a weight missing and the browser synthesises
+  // it. The glyphs differ from every other build, and only on the first build
+  // against a cold cache. Asking the filesystem at the end is indifferent to
+  // who wrote the file.
+  const resolved: FontFace[] = [];
+  for (const { request, wanted } of wantedByRequest) {
+    for (const face of wanted) {
+      if (await pathExists(face.file)) resolved.push(face);
+      else if (missing.has(request)) {
+        log.warn(
+          `"${face.family}" ${face.weight} ${face.style} is not in the font cache. ` +
+            'The browser will synthesise it, which will not match a machine that has it cached.',
+        );
+      }
+    }
+  }
+  return sortFaces(resolved);
 }
 
 /**

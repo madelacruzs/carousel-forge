@@ -86,23 +86,29 @@ describe('font face CSS', () => {
 describe('font cache writes', () => {
   let cache: string;
   let fetchSpy: ReturnType<typeof vi.spyOn>;
+  let warnSpy: ReturnType<typeof vi.spyOn>;
 
   const CSS = `
     @font-face { font-family: 'Inter'; font-style: normal; font-weight: 400; src: url(https://x/400.woff2) format('woff2'); }
     @font-face { font-family: 'Inter'; font-style: normal; font-weight: 700; src: url(https://x/700.woff2) format('woff2'); }
   `;
 
-  const woff2 = (seed: number) =>
-    Buffer.concat([Buffer.from('wOF2'), Buffer.alloc(2048, seed)]) as unknown as ArrayBufferLike;
+  const woff2Bytes = (seed: number) =>
+    Buffer.concat([Buffer.from('wOF2'), Buffer.alloc(2048, seed)]);
+  const woff2 = (seed: number) => woff2Bytes(seed) as unknown as ArrayBufferLike;
 
   beforeEach(async () => {
     cache = await fs.mkdtemp(path.join(os.tmpdir(), 'carousel-forge-cache-'));
     dirs.push(cache);
     process.env.CAROUSEL_FORGE_CACHE = cache;
+    // These cases deliberately provoke the warnings; keep them out of the
+    // test output so a real warning elsewhere stays visible.
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   afterEach(() => {
     fetchSpy?.mockRestore();
+    warnSpy?.mockRestore();
     delete process.env.CAROUSEL_FORGE_CACHE;
   });
 
@@ -164,5 +170,39 @@ describe('font cache writes', () => {
     await ensureGoogleFonts(request);
 
     expect((await fs.readdir(fontCacheDir())).filter((f) => f.includes('.tmp'))).toEqual([]);
+  });
+
+  /**
+   * The CI determinism failure lived here.
+   *
+   * Vitest runs test files in parallel workers, and on a cold cache several of
+   * them call this at once against the same directory. One worker's scan finds
+   * a face absent, another worker writes it a moment later, and by the time the
+   * first worker reaches its download loop the file exists - so it skips it.
+   * The face was in neither the "already cached" list nor the "just fetched"
+   * list, so the page was served Inter 700 with no Inter 400 and Chromium
+   * synthesised the regular weight. Different glyphs, only on the first build
+   * against a cold cache, only under parallelism. The fix is to resolve the
+   * final list from the filesystem, which does not care who wrote the file.
+   *
+   * The interleaving is forced here by writing the face from inside the CSS
+   * fetch, which is exactly the window the real race opens.
+   */
+  it('keeps a face another process wrote while this one was downloading', async () => {
+    respond(async (url) => {
+      if (url.includes('css2')) {
+        await fs.mkdir(fontCacheDir(), { recursive: true });
+        await fs.writeFile(
+          path.join(fontCacheDir(), 'inter-400-normal.woff2'),
+          Buffer.from(woff2Bytes(9)),
+        );
+        return new Response(CSS, { status: 200 });
+      }
+      return new Response(woff2(2), { status: 200 });
+    });
+
+    const faces = await ensureGoogleFonts(request);
+
+    expect(faces.map((f) => f.weight)).toEqual([400, 700]);
   });
 });

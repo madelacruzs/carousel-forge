@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import sharp from 'sharp';
 import { build } from '../src/pipeline/build.js';
 import { clearImageCache } from '../src/image/prepare.js';
-import { clearTemplateCache } from '../src/render/html.js';
+import { clearTemplateCache, renderFrameHtml } from '../src/render/html.js';
 
 /**
  * The promise of this tool is that the same inputs produce the same bytes, on
@@ -129,6 +129,40 @@ describe('determinism', () => {
     }
     const [first] = results;
     if (!first) throw new Error('no builds ran');
+
+    // Check the inputs before the pixels.
+    //
+    // A pixel diff on its own says only "something moved" and sends you
+    // guessing: fonts, the adaptive scrim, the browser. The page the renderer
+    // was handed is the dividing line. If it is identical across builds, the
+    // inputs are deterministic and the variance is in Chromium; if it differs,
+    // this names the layer - and the font CSS and the `:root` token block are
+    // checked separately because they fail for completely different reasons.
+    const layers = results.map((result) => ({
+      fontCss: sha(Buffer.from(result.project.fontCss)),
+      root: result.project.frames.map((frame) =>
+        sha(
+          Buffer.from(
+            /:root\s*\{[\s\S]*?\}/.exec(
+              renderFrameHtml({ frame, theme: result.project.theme, fontCss: '' }),
+            )?.[0] ?? '',
+          ),
+        ),
+      ),
+    }));
+    for (let i = 1; i < layers.length; i += 1) {
+      expect(
+        layers[i]?.fontCss,
+        `the @font-face CSS differs between build 1 and build ${i + 1}: a font resolved ` +
+          'differently, so the glyphs are not the same. Look at the font cache, not the renderer.',
+      ).toBe(layers[0]?.fontCss);
+      expect(
+        layers[i]?.root,
+        `the :root token block differs between build 1 and build ${i + 1}: a value the theme ` +
+          'reads - a luminance sample feeding the adaptive scrim, most likely - was measured ' +
+          'differently. Look at the measurement pass, not the renderer.',
+      ).toEqual(layers[0]?.root);
+    }
 
     const slides = first.files.filter((f) => /slide-\d+\.png$/.test(f));
     expect(slides.length).toBe(3);
