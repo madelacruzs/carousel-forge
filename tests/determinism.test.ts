@@ -113,40 +113,45 @@ afterAll(async () => {
 });
 
 describe('determinism', () => {
-  it('produces byte-identical PNGs across two independent builds', async () => {
-    const first = await build({
-      configFile: path.join(dir, 'carousel.yaml'),
-      outDir: path.join(dir, 'out-1'),
-    });
-
-    // Drop every cache and use a second browser process, so the second run
-    // shares nothing with the first beyond the files on disk.
-    clearImageCache();
-    clearTemplateCache();
-
-    const second = await build({
-      configFile: path.join(dir, 'carousel.yaml'),
-      outDir: path.join(dir, 'out-2'),
-    });
+  it('produces byte-identical PNGs across three independent builds', async () => {
+    const results = [];
+    for (const out of ['out-1', 'out-2', 'out-3']) {
+      // Drop every cache and launch a fresh browser process each time, so the
+      // runs share nothing beyond the files on disk. Three rather than two:
+      // with two, "the first render in a cold process is different" and
+      // "the renderer is randomly noisy" look identical, and they need very
+      // different fixes.
+      clearImageCache();
+      clearTemplateCache();
+      results.push(
+        await build({ configFile: path.join(dir, 'carousel.yaml'), outDir: path.join(dir, out) }),
+      );
+    }
+    const [first] = results;
+    if (!first) throw new Error('no builds ran');
 
     const slides = first.files.filter((f) => /slide-\d+\.png$/.test(f));
     expect(slides.length).toBe(3);
 
-    for (const file of slides) {
-      const twin = path.join(dir, 'out-2', path.basename(file));
-      const a = await fs.readFile(file);
-      const b = await fs.readFile(twin);
-      if (sha(a) !== sha(b)) {
-        throw new Error(`${path.basename(file)} differs between runs: ${await describe(a, b)}`);
+    const names = [...slides.map((f) => path.basename(f)), 'contact-sheet.png'];
+    for (const name of names) {
+      const bytes = await Promise.all(
+        ['out-1', 'out-2', 'out-3'].map((out) => fs.readFile(path.join(dir, out, name))),
+      );
+      for (let i = 1; i < bytes.length; i += 1) {
+        const a = bytes[0];
+        const b = bytes[i];
+        if (!a || !b) throw new Error(`${name} missing from build ${i + 1}`);
+        if (sha(a) !== sha(b)) {
+          throw new Error(
+            `${name} differs between build 1 and build ${i + 1}: ${await describe(a, b)}`,
+          );
+        }
       }
     }
 
-    const sheetA = await fs.readFile(path.join(dir, 'out-1', 'contact-sheet.png'));
-    const sheetB = await fs.readFile(path.join(dir, 'out-2', 'contact-sheet.png'));
-    expect(sha(sheetB)).toBe(sha(sheetA));
-
-    expect(second.rendered).toHaveLength(first.rendered.length);
-  }, 180_000);
+    expect(results[1]?.rendered).toHaveLength(first.rendered.length);
+  }, 300_000);
 
   it('exports at exactly the size the theme declares', async () => {
     const meta = await sharp(path.join(dir, 'out-1', 'slide-01.png')).metadata();
