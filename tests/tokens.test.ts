@@ -14,6 +14,7 @@ const theme: ThemeManifest = {
   },
   slots: ['title'],
   layouts: ['default'],
+  fonts: [],
 };
 
 describe('tokenToCssVar', () => {

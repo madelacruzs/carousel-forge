@@ -8,7 +8,7 @@ function expectRejected(yaml: string): { message: string; hint?: string; where?:
     parseCarousel(yaml, '/project/carousel.yaml');
   } catch (error) {
     if (!isForgeError(error)) throw error;
-    return { message: error.message, ...error };
+    return { ...error, message: error.message };
   }
   throw new Error('expected the carousel to be rejected, but it parsed');
 }

@@ -47,7 +47,7 @@ function sha(buffer: Buffer): string {
  * a font that fell back moves a few small boxes, and a colour-management
  * difference shifts every pixel by a little.
  */
-async function describe(a: Buffer, b: Buffer): Promise<string> {
+async function describeDifference(a: Buffer, b: Buffer): Promise<string> {
   const [ra, rb] = await Promise.all(
     [a, b].map((buf) => sharp(buf).raw().toBuffer({ resolveWithObject: true })),
   );
@@ -144,7 +144,7 @@ describe('determinism', () => {
         if (!a || !b) throw new Error(`${name} missing from build ${i + 1}`);
         if (sha(a) !== sha(b)) {
           throw new Error(
-            `${name} differs between build 1 and build ${i + 1}: ${await describe(a, b)}`,
+            `${name} differs between build 1 and build ${i + 1}: ${await describeDifference(a, b)}`,
           );
         }
       }
