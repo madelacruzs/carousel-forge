@@ -263,6 +263,33 @@ export class Renderer {
         );
       }
 
+      // `load` and `document.images` between them say nothing about CSS
+      // background images, which is what every theme actually uses for the
+      // photograph. Decode each one explicitly and let two frames pass, or the
+      // screenshot races the first paint and the export stops being
+      // reproducible.
+      await page.evaluate(async (urls: string[]) => {
+        await Promise.all(
+          urls.map(
+            (url) =>
+              new Promise<void>((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                  void img.decode().then(
+                    () => resolve(),
+                    () => resolve(),
+                  );
+                };
+                img.onerror = () => resolve();
+                img.src = url;
+              }),
+          ),
+        );
+        await new Promise<void>((resolve) => {
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+        });
+      }, referenced.filter(isAssetUrl));
+
       const probes = (await page.evaluate(PROBE_SCRIPT)) as unknown as SlotProbe[];
       const raw = await page.screenshot({
         type: 'png',
