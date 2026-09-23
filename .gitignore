@@ -1,0 +1,9 @@
+node_modules/
+dist/
+out/
+coverage/
+*.log
+.DS_Store
+.cache/
+.carousel-forge-cache/
+tests/__fixtures__/tmp/

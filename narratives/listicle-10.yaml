@@ -1,0 +1,46 @@
+name: listicle-10
+description: A hook, eight discrete points, and a close. The workhorse format for saveable educational posts.
+goal: Deliver a complete, scannable list that is worth keeping.
+hooks: [wish-i-knew, insider-list, number-drop, contrarian]
+
+defaults:
+  copy:
+    title: { maxWords: 7, maxLines: 2 }
+    body: { maxWords: 18, maxLines: 3 }
+
+roles:
+  - id: hook
+    purpose: promise the list and make the number concrete
+    layout: hook
+    tone: >
+      State the number. The number is the promise, and the reader counts it down —
+      that countdown is what keeps them swiping.
+    example: "9 things nobody tells you about going freelance"
+    requires: [title]
+    copy:
+      title: { maxWords: 10, maxLines: 3 }
+
+  - id: point
+    purpose: deliver one item of the list
+    layout: value
+    tone: >
+      One point per slide, phrased as an instruction. Lead with the verb.
+      If two points feel related, they are one point.
+    example: "charge for the revision, not the hour"
+    repeat: { min: 4, max: 18 }
+    requires: [title]
+    copy:
+      title: { maxWords: 7, maxLines: 2 }
+      body: { maxWords: 18, maxLines: 3 }
+      bullets: { maxItems: 3, maxWordsPerItem: 8 }
+
+  - id: cta
+    purpose: ask for the save, since a list is something people come back to
+    layout: cta
+    anchor: end
+    tone: Lean on the fact that a list is a reference. "Save this" is the natural ask.
+    example: "save this before you quote your next job"
+    requires: [cta]
+    copy:
+      title: { maxWords: 9, maxLines: 2 }
+      cta: { maxWords: 6, maxLines: 1 }

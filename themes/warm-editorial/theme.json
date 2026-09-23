@@ -1,0 +1,53 @@
+{
+  "name": "warm-editorial",
+  "description": "Dark, warm and photography-led. Full-bleed image, heavy bottom gradient, lowercase serif headline in the accent colour. The default.",
+  "canvas": { "w": 1080, "h": 1350 },
+  "safeArea": { "top": 80, "right": 72, "bottom": 120, "left": 72 },
+  "tokens": {
+    "accent": "#E8C47A",
+    "ink": "#FFFFFF",
+    "inkMuted": "rgba(255,255,255,0.74)",
+    "paper": "#14100D",
+    "overlay": "linear-gradient(180deg, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0.58) 64%, rgba(0,0,0,0.9) 100%)",
+    "fontDisplay": "Playfair Display",
+    "fontBody": "Inter",
+    "titleSize": "88px",
+    "titleLeading": "0.95",
+    "bodySize": "32px",
+    "bodyLeading": "1.55",
+    "rule": "rgba(255,255,255,0.22)"
+  },
+  "slots": [
+    "eyebrow",
+    "title",
+    "body",
+    "bullets",
+    "cta",
+    "note",
+    "index",
+    "logo",
+    "handle",
+    "highlight",
+    "labelA",
+    "labelB"
+  ],
+  "layouts": ["default", "hook", "value", "quote", "split", "cta"],
+  "fonts": [
+    { "family": "Playfair Display", "weights": [400, 500, 700], "styles": ["normal", "italic"] },
+    { "family": "Inter", "weights": [400, 500, 600], "styles": ["normal"] }
+  ],
+  "lineBudget": {
+    "title": { "maxLines": 4 },
+    "body": { "maxLines": 4 }
+  },
+  "motion": {
+    "duration": 3.5,
+    "fps": 30,
+    "transition": "cross-dissolve",
+    "slots": {
+      "title": { "in": "rise", "delay": 0.15, "duration": 0.6 },
+      "body": { "in": "fade", "delay": 0.4, "duration": 0.5 },
+      "index": { "in": "fade", "delay": 0, "duration": 0.3 }
+    }
+  }
+}

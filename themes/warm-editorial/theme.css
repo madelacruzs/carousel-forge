@@ -1,0 +1,381 @@
+/* warm-editorial — all of the design lives here.
+   Core never sets a colour, a size or a position; it only exposes tokens as
+   custom properties and sizes the canvas. */
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: 'kern' 1, 'liga' 1;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+}
+
+/* ---- photograph ------------------------------------------------------- */
+
+.photo {
+  position: absolute;
+  inset: 0;
+  background-image: var(--image);
+  background-size: cover;
+  background-position: center;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--overlay);
+  opacity: calc(0.4 + 0.6 * var(--overlay-strength));
+}
+
+/* ---- slide number ------------------------------------------------------ */
+
+.index {
+  position: absolute;
+  top: var(--safe-top);
+  left: var(--safe-left);
+  z-index: 2;
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  color: var(--accent);
+  opacity: 0.78;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- copy -------------------------------------------------------------- */
+
+.content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 500;
+  font-size: var(--title-size);
+  line-height: var(--title-leading);
+  letter-spacing: -0.015em;
+  text-transform: lowercase;
+  color: var(--accent);
+  text-wrap: balance;
+}
+
+.title .line {
+  display: block;
+}
+
+.title mark {
+  background: var(--accent);
+  color: var(--paper);
+  padding: 0 0.12em 0.04em;
+  border-radius: 2px;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 82%;
+}
+
+.body p {
+  margin: 0;
+  font-size: var(--body-size);
+  line-height: var(--body-leading);
+  color: var(--ink-muted);
+}
+
+.bullets {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 88%;
+}
+
+.bullets li {
+  position: relative;
+  padding-left: 38px;
+  font-size: 30px;
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+.bullets li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 20px;
+  height: 2px;
+  background: var(--accent);
+}
+
+.inline-cta {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+
+.note {
+  margin: 0;
+  font-size: 21px;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+}
+
+/* ---- footer ------------------------------------------------------------ */
+
+.footer {
+  position: relative;
+  z-index: 2;
+  margin-top: 44px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-height: 1px;
+}
+
+.logo {
+  height: 40px;
+  width: auto;
+  opacity: 0.92;
+}
+
+.handle {
+  font-size: 22px;
+  letter-spacing: 0.14em;
+  color: var(--ink-muted);
+}
+
+/* ---- layout: hook ------------------------------------------------------ */
+
+.layout-hook .title {
+  font-size: calc(var(--title-size) * 1.24);
+  line-height: 0.92;
+  color: var(--accent);
+}
+
+.layout-hook .scrim {
+  opacity: calc(0.55 + 0.45 * var(--overlay-strength));
+}
+
+.layout-hook .body p {
+  font-size: calc(var(--body-size) * 1.08);
+  color: var(--ink);
+}
+
+/* ---- layout: value ----------------------------------------------------- */
+
+.layout-value .title {
+  font-size: calc(var(--title-size) * 0.86);
+  color: var(--accent);
+}
+
+/* ---- layout: quote ----------------------------------------------------- */
+
+.layout-quote .slide {
+  justify-content: center;
+}
+
+.layout-quote .content {
+  gap: 32px;
+}
+
+.layout-quote .title {
+  font-family: var(--font-display), Georgia, serif;
+  font-style: italic;
+  font-size: calc(var(--title-size) * 0.94);
+  line-height: 1.06;
+  color: var(--ink);
+  text-transform: none;
+}
+
+.layout-quote .content::before {
+  content: '\201C';
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 150px;
+  line-height: 0.6;
+  color: var(--accent);
+  opacity: 0.55;
+}
+
+.layout-quote .footer {
+  position: absolute;
+  left: var(--safe-left);
+  bottom: var(--safe-bottom);
+  margin-top: 0;
+}
+
+.layout-quote .scrim {
+  opacity: calc(0.55 + 0.45 * var(--overlay-strength));
+}
+
+/* ---- layout: split ----------------------------------------------------- */
+
+.split {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+}
+
+.split-pane {
+  position: relative;
+  overflow: hidden;
+}
+
+.split-pane--b {
+  border-top: 1px solid var(--rule);
+}
+
+.split-photo {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+
+.split-photo--a {
+  background-image: var(--image);
+}
+
+.split-photo--b {
+  background-image: var(--image-b);
+  filter: saturate(0.85);
+}
+
+.split-label {
+  position: absolute;
+  left: var(--safe-left);
+  top: 34px;
+  margin: 0;
+  z-index: 3;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: rgba(0, 0, 0, 0.5);
+  padding: 10px 16px;
+  backdrop-filter: blur(2px);
+}
+
+.split-pane--a .split-label {
+  top: var(--safe-top);
+}
+
+.scrim--split {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0) 22%,
+      rgba(0, 0, 0, 0) 52%, rgba(0, 0, 0, 0.82) 100%);
+}
+
+.layout-split .title {
+  font-size: calc(var(--title-size) * 0.84);
+  color: var(--ink);
+}
+
+.layout-split .content {
+  gap: 18px;
+}
+
+/* ---- layout: cta ------------------------------------------------------- */
+
+.layout-cta body,
+body.layout-cta {
+  background: var(--paper);
+}
+
+.layout-cta .slide {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.cta-stack {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 34px;
+  max-width: 78%;
+}
+
+.cta-logo {
+  height: 76px;
+  width: auto;
+  opacity: 0.95;
+}
+
+.cta-title {
+  margin: 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 500;
+  font-size: calc(var(--title-size) * 0.8);
+  line-height: 1.04;
+  letter-spacing: -0.01em;
+  text-transform: lowercase;
+  color: var(--accent);
+  text-wrap: balance;
+}
+
+.cta-title .line {
+  display: block;
+}
+
+.cta-action {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  padding: 18px 34px;
+}
+
+.cta-note {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+}
+
+.cta-handle {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(-1 * var(--safe-bottom) + 24px);
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: 0.18em;
+  color: var(--ink-muted);
+}

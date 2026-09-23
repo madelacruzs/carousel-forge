@@ -1,0 +1,62 @@
+name: viral-5
+description: The five-slide structure most saved carousels use. Hook, agitate, deliver, deliver, ask.
+goal: Stop the scroll, make the problem feel personal, hand over something usable, then ask for the save.
+hooks: [wish-i-knew, mistake, contrarian, number-drop, perception-vs-reality]
+
+defaults:
+  copy:
+    title: { maxWords: 7, maxLines: 3 }
+    body: { maxWords: 20, maxLines: 3 }
+
+roles:
+  - id: hook
+    purpose: stop the scroll
+    layout: hook
+    tone: >
+      Blunt and specific. Second person or a number. No throat-clearing, no brand voice,
+      no adjectives you would not say out loud. This slide is the whole post's audition.
+    example: "5 things i wish i knew before i started"
+    requires: [title]
+    copy:
+      title: { maxWords: 9, maxLines: 3 }
+      body: { maxWords: 12, maxLines: 2 }
+
+  - id: agitation
+    purpose: make the reader think "this is me"
+    layout: quote
+    tone: >
+      Name the frustration in the reader's own words. One idea. Do not solve it yet —
+      the tension is what carries them to slide 3.
+    example: "you're busy every day and still behind"
+    requires: [title]
+    copy:
+      title: { maxWords: 8, maxLines: 3 }
+      body: { maxWords: 18, maxLines: 2 }
+
+  - id: value
+    purpose: deliver something the reader can act on today
+    layout: value
+    tone: >
+      One actionable point per slide. Lead with the verb. If it could be a screenshot
+      in someone's notes app, it is working.
+    example: "start with the ugly version"
+    repeat: { min: 2, max: 8 }
+    requires: [title]
+    copy:
+      title: { maxWords: 7, maxLines: 2 }
+      body: { maxWords: 20, maxLines: 3 }
+      bullets: { maxItems: 3, maxWordsPerItem: 8 }
+
+  - id: cta
+    purpose: convert attention into a save, a comment or a follow
+    layout: cta
+    anchor: end
+    tone: >
+      Ask for exactly one thing. "Save this" and "comment a word" outperform "link in bio",
+      because saves and comments are what the ranking rewards.
+    example: "save this for the next time you stall"
+    requires: [cta]
+    copy:
+      title: { maxWords: 9, maxLines: 2 }
+      cta: { maxWords: 6, maxLines: 1 }
+      note: { maxWords: 10, maxLines: 1 }

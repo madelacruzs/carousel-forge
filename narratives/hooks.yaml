@@ -1,0 +1,55 @@
+# Hook formulas.
+#
+# These are patterns, not sentences. Fill every {slot} with something specific
+# from the brief — a real number, a real topic, the reader's actual objection.
+# A filled-in pattern that stays generic ("3 tips for success") is still a bad hook.
+#
+# An agent using skills/instagram-carousel/SKILL.md must propose three of these,
+# filled in, and let the user choose before any other copy gets written.
+
+- id: wish-i-knew
+  pattern: "{n} things I wish I knew before {topic}"
+  works_for: [educational, personal, retrospective]
+  notes: Works because it is a confession, not a lecture. Use a real regret.
+
+- id: perception-vs-reality
+  pattern: "what they see vs. what it actually is"
+  works_for: [behind-the-scenes, personal, process]
+  visual: split
+  notes: Needs a split layout — two images, two labels. Pairs a polished shot with an honest one.
+
+- id: mistake
+  pattern: "you're doing {thing} wrong. here's why."
+  works_for: [educational, contrarian, technical]
+  notes: Accusatory on purpose. Only use it if slide 2 immediately lets the reader off the hook.
+
+- id: contrarian
+  pattern: "stop {common_advice}. do {this} instead."
+  works_for: [contrarian, educational]
+  notes: Requires that you actually disagree with the common advice. Fake contrarianism reads as bait.
+
+- id: number-drop
+  pattern: "{metric} in {timeframe}. without {obvious_shortcut}."
+  works_for: [results, case-study, business]
+  notes: Only with a number you can defend. Naming the shortcut you did not take is what makes it credible.
+
+- id: cost-of-inaction
+  pattern: "{thing} is costing you {cost} and you can't see it"
+  works_for: [educational, business, persuasive]
+
+- id: insider-list
+  pattern: "{n} {things} nobody tells you about {topic}"
+  works_for: [educational, personal, industry]
+
+- id: question-direct
+  pattern: "why is {common_thing} so {unexpected_adjective}?"
+  works_for: [educational, curiosity, technical]
+
+- id: before-after
+  pattern: "{before_state} → {after_state}. here's what changed."
+  works_for: [transformation, case-study, personal]
+  visual: split
+
+- id: permission
+  pattern: "you're allowed to {thing_they_think_is_not_allowed}"
+  works_for: [personal, mindset, community]

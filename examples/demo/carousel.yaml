@@ -1,0 +1,44 @@
+# carousel-forge — content file
+# Theme decides how it looks. Narrative decides what it says, and in what order.
+# They are independent: any theme combines with any narrative.
+theme: warm-editorial
+narrative: viral-5
+
+brand:
+  handle: "@yourhandle"
+  accent: "#E8C47A"
+
+defaults:
+  overlay: 0.55
+  numbering: true
+
+slides:
+  # 1 — hook. This slide has one job: stop the scroll.
+  - image: images/dusk.jpg
+    focal: [0.5, 0.35]
+    title: |
+      5 things i wish i knew
+      before i started
+    cta: ""
+
+  # 2 — agitation. Make them think "this is me".
+  - image: images/clay.jpg
+    focal: [0.45, 0.4]
+    title: "you're busy every day and still behind"
+    body: "it isn't a discipline problem. it's a sequencing problem."
+
+  # 3 — value.
+  - image: images/linen.jpg
+    title: "start with the ugly version"
+    body: "a rough first pass you can react to beats a perfect plan you never begin."
+
+  # 4 — value.
+  - image: images/ember.jpg
+    title: "one decision per session"
+    body: "decide the next thing, not the whole thing."
+
+  # 5 — call to action.
+  - layout: cta
+    title: "save this for the next time you stall"
+    cta: "save this post"
+    note: "more like this every week"
