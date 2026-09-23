@@ -512,3 +512,10 @@ Themes and narratives are the most useful things to contribute. See
 MIT. Generated placeholder photos and the three shipped themes are part of
 this repository and carry the same licence. No commercial fonts are committed:
 Google Fonts are downloaded at build time into a local cache.
+
+Only the `latin` subset of each Google font is cached, which covers English
+and the accented characters of the Western European languages. Text in
+Cyrillic, Greek, Vietnamese or the Latin-Extended range will fall back to a
+system font, which also means it will not render identically on every machine.
+If you need one of those scripts, ship the font in your theme's `fonts/`
+directory instead.

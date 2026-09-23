@@ -161,6 +161,33 @@ describe('font cache writes', () => {
     expect(await fs.readdir(fontCacheDir())).toEqual([]);
   });
 
+  /**
+   * Google emits one `@font-face` block per unicode-range subset, and every
+   * subset of a weight collapses onto the same cache filename. Downloading
+   * each in turn and letting the last write win means two builds racing on a
+   * cold cache can leave different bytes under the same name. Choose once,
+   * download once.
+   */
+  it('downloads one subset per weight rather than every subset in turn', async () => {
+    const subsets = `
+      @font-face { font-family: 'Inter'; font-style: normal; font-weight: 400; src: url(https://x/400-cyrillic.woff2) format('woff2'); unicode-range: U+0301; }
+      @font-face { font-family: 'Inter'; font-style: normal; font-weight: 400; src: url(https://x/400-latin.woff2) format('woff2'); unicode-range: U+0000-00FF; }
+      @font-face { font-family: 'Inter'; font-style: normal; font-weight: 700; src: url(https://x/700-latin.woff2) format('woff2'); unicode-range: U+0000-00FF; }
+    `;
+    const fetched: string[] = [];
+    respond(async (url) => {
+      if (url.includes('css2')) return new Response(subsets, { status: 200 });
+      fetched.push(url);
+      return new Response(woff2(url.includes('cyrillic') ? 8 : 4), { status: 200 });
+    });
+
+    await ensureGoogleFonts(request);
+
+    expect(fetched).toEqual(['https://x/400-latin.woff2', 'https://x/700-latin.woff2']);
+    const cached = await fs.readFile(path.join(fontCacheDir(), 'inter-400-normal.woff2'));
+    expect(cached.equals(woff2Bytes(4))).toBe(true);
+  });
+
   it('leaves no temporary files behind', async () => {
     respond(async (url) => {
       if (url.includes('css2')) return new Response(CSS, { status: 200 });

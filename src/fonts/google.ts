@@ -1,4 +1,5 @@
 import { promises as fs } from 'node:fs';
+import { randomUUID } from 'node:crypto';
 import os from 'node:os';
 import path from 'node:path';
 import { ensureDir, listFiles, pathExists } from '../util/fs.js';
@@ -93,9 +94,14 @@ function looksLikeFont(bytes: Buffer): boolean {
  * Write a font into the cache via a temporary file in the same directory.
  * A half-written woff2 that keeps its final name would be reused by every
  * later build on this machine, which is a permanent, invisible corruption.
+ *
+ * The temporary name has to be unique per call, not per process. Vitest runs
+ * test files in worker *threads*, so two concurrent writers share a pid; a
+ * pid-based temporary name means both write the same file at once and one of
+ * them renames the interleaved result into place.
  */
 async function commitFont(file: string, bytes: Buffer): Promise<void> {
-  const tmp = `${file}.${process.pid}.tmp`;
+  const tmp = `${file}.${randomUUID()}.tmp`;
   await fs.writeFile(tmp, bytes);
   await fs.rename(tmp, file);
 }
@@ -148,10 +154,31 @@ export async function ensureGoogleFonts(requests: FontRequest[]): Promise<FontFa
       // machine finds those files cached and renders the real glyphs. Same
       // inputs, different pixels, and only ever on the first build after a
       // network hiccup - the hardest possible thing to reproduce.
-      const staged: { file: string; bytes: Buffer }[] = [];
+      // Google returns one `@font-face` block per unicode-range subset, and
+      // every subset of a weight collapses onto the same cache filename. Pick
+      // the subset deliberately and download it once.
+      //
+      // Downloading each block in turn and letting the last write win means
+      // two builds racing on a cold cache can leave different bytes under the
+      // same name, depending on how far each got before the other renamed its
+      // file into place - and it downloads seven files to keep one.
+      //
+      // The last block Google emits is `latin` (U+0000-00FF plus a handful of
+      // punctuation), which covers English and the accented characters of the
+      // Western European languages. Known limitation: text in Cyrillic, Greek,
+      // Vietnamese or the Latin-Extended range is not covered by this subset
+      // and the browser will fall back to a system font for those characters.
+      // Caching every subset instead would multiply the inlined font payload
+      // by seven, so that trade is left for when a theme actually needs it.
+      const chosen = new Map<string, ParsedFace>();
       for (const face of parseGoogleCss(css)) {
         if (!request.weights.includes(face.weight)) continue;
         if (!request.styles.includes(face.style)) continue;
+        chosen.set(`${face.weight}|${face.style}`, face);
+      }
+
+      const staged: { file: string; bytes: Buffer }[] = [];
+      for (const face of chosen.values()) {
         const file = cacheFileFor(request.family, face.weight, face.style);
         if (await pathExists(file)) continue;
         const bytes = await download(face.url);
