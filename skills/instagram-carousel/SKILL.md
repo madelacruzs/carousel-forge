@@ -147,6 +147,31 @@ time. These are not style preferences; copy over budget stops working.
 Each narrative role declares its own budget; `doctor` reports the exact
 numbers. Treat an over-budget warning as "cut", never as "shrink the font".
 
+### Copy the user wrote is theirs
+
+When the user supplies exact copy, it goes into `carousel.yaml` **verbatim** —
+every clause, in their wording, including the ones you would have cut.
+
+If a line is over budget, overflows the safe area, or breaks badly, do not
+quietly fix it. Say which slide, quote the line, explain what it does, and
+propose a shorter alternative. The user accepts or rejects it.
+
+Silently dropping a clause is the worst failure this skill has, because the
+result still looks finished. Nothing downstream will catch it: the CLI has no
+truncation logic, so copy that vanishes between the brief and the render was
+removed by you, and only you can report it.
+
+Rhythm is often the point of a line. Three short beats are not a redundant
+version of two — if the shape is doing work, keep it and use explicit line
+breaks with a YAML block scalar:
+
+```yaml
+body: |-
+  no el país.
+  el ruido de la calle.
+  que alguien pase sin avisar.
+```
+
 ### Writing that holds attention
 
 - **Slide 2 must pay off slide 1 immediately.** The hook opened a loop; if

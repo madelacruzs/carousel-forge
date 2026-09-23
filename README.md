@@ -240,10 +240,22 @@ contrast between the words and the photo behind them, a title too small to
 read in a grid preview, source photos below the canvas resolution, slots the
 theme does not render, and carousels over 20 slides.
 
+The contrast check looks at the share of each line that falls under the bar,
+not the average across it. A photograph with a blown-out window behind a third
+of the headline averages out to a comfortable mid-grey, so a mean is blind in
+exactly the case that matters; a single worst pixel is the opposite error and
+fires on any bright speck. Warnings name the worst ratio and how much of the
+line is affected.
+
 **Copy**, read from the source: a first slide that does not look like a hook,
 no call to action anywhere, slides over their role's word and line budget,
 required slots left empty, too many words on one slide, consecutive slides
 repeating each other, and slide counts a narrative cannot express.
+
+Hook and call-to-action detection are literal pattern matches over English and
+Spanish. They are deliberately dumb: a carousel in another language will trip
+`copy/no-cta` even with a perfectly good CTA. Add the patterns rather than
+expecting the CLI to guess.
 
 It reports and explains. It does not rewrite.
 
@@ -310,6 +322,16 @@ Mark every text element the reader sees with `data-slot`:
 
 That attribute is how `doctor` measures your theme without knowing anything
 about it.
+
+To check contrast, `doctor` re-renders the slide with every `[data-slot]`
+element's text made transparent, and samples the photo behind each line from
+that capture. Two consequences worth knowing while you author a theme:
+
+- Anything you paint _on_ the slot element itself — a dark lozenge behind a
+  label, a highlight block behind a word — stays visible in that capture and
+  correctly counts towards legibility.
+- Anything you paint _as_ text, such as a glyph used for decoration, disappears.
+  Put decorative marks on their own element without `data-slot`.
 
 **theme.css** gets the token custom properties plus, from core:
 `--canvas-w`, `--canvas-h`, `--safe-top/right/bottom/left`,

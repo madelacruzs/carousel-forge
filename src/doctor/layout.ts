@@ -2,6 +2,7 @@ import {
   contrastRatio,
   meanLuminance,
   parseCssColor,
+  patchLuminances,
   relativeLuminance,
 } from '../image/prepare.js';
 import type { ProjectContext } from '../pipeline/context.js';
@@ -107,23 +108,44 @@ export async function auditLayout(
       const rgb = parseCssColor(probe.color);
       if (rgb && probe.text.length > 0) {
         const textLuminance = relativeLuminance(rgb[0], rgb[1], rgb[2]);
-        const backgroundLuminance = await meanLuminance(item.png, {
-          x: probe.x,
-          y: probe.y,
-          width: probe.width,
-          height: probe.height,
-        });
-        const ratio = contrastRatio(textLuminance, backgroundLuminance);
+        const rect = { x: probe.x, y: probe.y, width: probe.width, height: probe.height };
+        // Measure the backdrop, never the finished slide: sampling the latter
+        // includes the glyphs themselves, so the score tracks ink coverage
+        // rather than what the type has to stay legible against.
+        const behind = item.backdrop ?? item.png;
+        const meanRatio = contrastRatio(textLuminance, await meanLuminance(behind, rect));
+
+        // Judge how much of the line fails, not the average and not the single
+        // worst cell. A mean hides a blown-out window behind half a headline;
+        // the worst cell fires on one stray highlight in a gap between glyphs.
+        // Counting the share of the box that falls under the bar expresses the
+        // thing that actually matters — whether a readable run of the line has
+        // gone illegible — and separates the two cleanly.
+        const patches = await patchLuminances(behind, rect);
+        const ratios = patches.map((patch) => contrastRatio(textLuminance, patch));
+
         // Copy the audience has to read is held to WCAG. Chrome — the slide
         // number, the handle, labels — is allowed to recede, so it only has to
         // clear the large-text bar.
         const threshold = READING_SLOTS.has(probe.slot) && probe.fontSize < 24 ? 4.5 : 3;
-        if (ratio < threshold) {
+
+        const failing = ratios.filter((r) => r < threshold);
+        const share = ratios.length > 0 ? failing.length / ratios.length : 0;
+        // An eighth of a line is roughly a short word at this type size: small
+        // enough to catch a blown-out patch behind part of a headline, large
+        // enough that noise in a busy photograph does not trip it.
+        const FAIL_SHARE = 1 / 8;
+        if (share >= FAIL_SHARE && failing.length > 0) {
+          const worst = Math.min(...failing);
+          const ratio = failing.reduce((a, b) => a + b, 0) / failing.length;
+          const local = meanRatio >= threshold;
           diagnostics.push({
             level: 'warn',
             code: 'layout/low-contrast',
             slide: slideNumber,
-            message: `"${probe.slot}" sits at ${ratio.toFixed(1)}:1 against the photo behind it (want ${threshold}:1).`,
+            message: local
+              ? `"${probe.slot}" drops to ${worst.toFixed(1)}:1 behind ${Math.round(share * 100)}% of the line (want ${threshold}:1). Averaged across the whole line it looks fine at ${meanRatio.toFixed(1)}:1, which is why this is easy to miss.`
+              : `"${probe.slot}" sits at ${ratio.toFixed(1)}:1 against the photo behind it, dropping to ${worst.toFixed(1)}:1 (want ${threshold}:1).`,
             hint: 'raise overlay: on this slide, move the focal point to a darker part of the photo, or pick a different image.',
           });
         }

@@ -43,6 +43,8 @@ export {
   luminanceBands,
   LUMA_ROWS,
   LUMA_COLS,
+  meanLuminance,
+  patchLuminances,
 } from './image/prepare.js';
 export type { PreparedImage, LuminanceBands } from './image/prepare.js';
 

@@ -35,25 +35,25 @@ const SIGNALS: { name: string; test: (text: string) => boolean }[] = [
   },
   {
     name: 'addresses the reader directly',
-    test: (t) => /\b(you|your|you're|youre)\b/i.test(t),
+    test: (t) => /\b(you|your|you're|youre|tú|tu|tus|te|ti|usted|vos)\b/i.test(t),
   },
   {
     name: 'takes a contrarian position',
     test: (t) =>
-      /\b(stop|quit|never|don't|dont|avoid|nobody|no one|instead|actually|wrong|myth|overrated)\b/i.test(
+      /\b(stop|quit|never|don't|dont|avoid|nobody|no one|instead|actually|wrong|myth|overrated|deja de|nunca|nadie|en vez de|en realidad|mentira|mito)\b/i.test(
         t,
       ),
   },
   {
     name: 'promises a payoff',
     test: (t) =>
-      /\b(how to|here's|heres|why|what|secret|mistake|lesson|wish i|before you|things i)\b/i.test(
+      /\b(how to|here's|heres|why|what|secret|mistake|lesson|wish i|before you|things i|cómo|como|por qué|por que|secreto|error|lección|leccion|antes de|lo que)\b/i.test(
         t,
       ),
   },
   {
     name: 'sets up a contrast',
-    test: (t) => /\bvs\.?\b|\bversus\b|\bbefore\b.*\bafter\b/i.test(t),
+    test: (t) => /\bvs\.?\b|\bversus\b|\bbefore\b.*\bafter\b|\bantes\b.*\bdespués\b/i.test(t),
   },
 ];
 
@@ -72,6 +72,12 @@ export function detectHook(text: string | undefined, hooks: Hook[] = []): HookMa
   return { matched: signals.length > 0, signals };
 }
 
+/**
+ * Imperatives that ask the reader to act. English and Spanish only — these are
+ * dumb literal patterns, not language detection. A carousel written in another
+ * language will trip `copy/no-cta` even with a perfectly good CTA; add the verbs
+ * here rather than teaching the CLI to guess.
+ */
 const CTA_PATTERNS = [
   /\bsave\b/i,
   /\bshare\b/i,
@@ -87,6 +93,16 @@ const CTA_PATTERNS = [
   /\bget\b.*\bfree\b/i,
   /\bswipe\b/i,
   /\breply\b/i,
+  // Spanish imperatives, with and without the accented form.
+  /\bguarda\b|\bguárdalo\b|\bguardalo\b|\bguárdate\b/i,
+  /\bcomparte\b|\bcompártelo\b|\bcompartelo\b/i,
+  /\bsígueme\b|\bsigueme\b|\bsíguenos\b|\bsiguenos\b/i,
+  /\bcomenta\b|\bcoméntame\b|\bcomentame\b/i,
+  /\bescríbeme\b|\bescribeme\b|\bmándame\b|\bmandame\b/i,
+  /\bsuscríbete\b|\bsuscribete\b/i,
+  /\bdesliza\b/i,
+  /\búnete\b|\bunete\b/i,
+  /\benlace en la bio\b|\blink en la bio\b/i,
 ];
 
 /** Does this copy ask the reader to do something? */

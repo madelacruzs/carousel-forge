@@ -56,6 +56,77 @@ async function splitPhoto(file: string, w: number, h: number): Promise<void> {
     .toFile(file);
 }
 
+/**
+ * Mostly dark, with a bright vertical band down the right third. The *average*
+ * luminance behind a full-width headline is comfortably dark; a third of that
+ * headline is nonetheless sitting on a blowout. This is the shape of a real
+ * backlit photograph, and it is the case a mean-luminance check cannot see.
+ */
+async function blowoutBandPhoto(file: string, w: number, h: number): Promise<void> {
+  const bandWidth = Math.floor(w * 0.34);
+  const band = await sharp({
+    create: { width: bandWidth, height: h, channels: 3, background: '#ffffff' },
+  })
+    .png()
+    .toBuffer();
+  await sharp({ create: { width: w, height: h, channels: 3, background: '#050505' } })
+    .composite([{ input: band, top: 0, left: w - bandWidth }])
+    .png({ compressionLevel: 0 })
+    .toFile(file);
+}
+
+/**
+ * A bright band across the top that stops well above where any glyph lands.
+ * The title block's box covers it; the title's *ink* does not. Used to prove the
+ * contrast probe measures the type rather than the element that contains it.
+ */
+async function highBandPhoto(file: string, w: number, h: number): Promise<void> {
+  const bandHeight = Math.floor(h * 0.207);
+  const band = await sharp({
+    create: { width: w, height: bandHeight, channels: 3, background: '#ffffff' },
+  })
+    .png()
+    .toBuffer();
+  await sharp({ create: { width: w, height: h, channels: 3, background: '#050505' } })
+    .composite([{ input: band, top: 0, left: 0 }])
+    .png({ compressionLevel: 0 })
+    .toFile(file);
+}
+
+/**
+ * A theme with no scrim at all whose title block carries a large top padding,
+ * so the element box and the glyph box are far apart on purpose.
+ */
+const LEADING_THEME_JSON = JSON.stringify(
+  {
+    name: 'leading',
+    description: 'Control fixture: a title block much taller than the type inside it.',
+    canvas: { w: 1080, h: 1350 },
+    safeArea: { top: 80, right: 72, bottom: 120, left: 72 },
+    tokens: { accent: '#E8C47A', ink: '#FFFFFF', fontDisplay: 'Inter', fontBody: 'Inter' },
+    slots: ['title', 'index'],
+    layouts: ['default'],
+    fonts: [{ family: 'Inter', weights: [400, 600], styles: ['normal'] }],
+  },
+  null,
+  2,
+);
+
+const LEADING_TEMPLATE = `<div class="slide">
+  {{#if hasImage}}<div class="photo"></div>{{/if}}
+  <h1 class="title" data-slot="title">{{#each titleLines}}<span class="line">{{this}}</span>{{/each}}</h1>
+</div>`;
+
+const LEADING_CSS = `.slide { position: absolute; inset: 0; background: #000; color: var(--ink);
+  font-family: var(--font-body), sans-serif; overflow: hidden; }
+.photo { position: absolute; inset: 0; background-image: var(--image);
+  background-size: cover; background-position: center; }
+/* No scrim: the photograph reaches the type unmodified, on purpose. */
+.title { position: absolute; left: var(--safe-left); right: var(--safe-right); top: 0;
+  margin: 0; padding-top: 330px; font-size: 72px; line-height: 1; font-weight: 600;
+  color: var(--ink); }
+.title .line { display: block; }`;
+
 /** A theme that overlays a fixed scrim and ignores what the photo is doing. */
 const NAIVE_THEME_JSON = JSON.stringify(
   {
@@ -117,8 +188,18 @@ beforeAll(async () => {
   await fs.writeFile(path.join(dir, 'themes', 'naive', 'theme.json'), NAIVE_THEME_JSON, 'utf8');
   await fs.writeFile(path.join(dir, 'themes', 'naive', 'template.html'), NAIVE_TEMPLATE, 'utf8');
   await fs.writeFile(path.join(dir, 'themes', 'naive', 'theme.css'), NAIVE_CSS, 'utf8');
+  await fs.mkdir(path.join(dir, 'themes', 'leading'), { recursive: true });
+  await fs.writeFile(path.join(dir, 'themes', 'leading', 'theme.json'), LEADING_THEME_JSON, 'utf8');
+  await fs.writeFile(
+    path.join(dir, 'themes', 'leading', 'template.html'),
+    LEADING_TEMPLATE,
+    'utf8',
+  );
+  await fs.writeFile(path.join(dir, 'themes', 'leading', 'theme.css'), LEADING_CSS, 'utf8');
   await noisePhoto(path.join(dir, 'images', 'noise.png'), 1620, 2025);
   await splitPhoto(path.join(dir, 'images', 'split.png'), 1620, 2026);
+  await blowoutBandPhoto(path.join(dir, 'images', 'band.png'), 1620, 2025);
+  await highBandPhoto(path.join(dir, 'images', 'high-band.png'), 1620, 2025);
 }, 180_000);
 
 afterAll(async () => {
@@ -169,5 +250,39 @@ describe('rendering a genuinely hard photograph', () => {
     const report = await doctor({ project });
     const bad = report.diagnostics.filter((f) => f.code === 'layout/low-contrast');
     expect(bad.length).toBeGreaterThan(0);
+  }, 180_000);
+
+  it('sees a blowout under part of a line that the average hides', async () => {
+    // Validating against real photographs turned up the defect this guards: a
+    // backlit frame averages a blown-out sky and dark trees into a comfortable
+    // mid-grey, so the mean passed on exactly the two hardest photos in the set
+    // while a third of the headline was unreadable. The check judges the worst
+    // quarter of the area now, and says so in the message when the mean would
+    // have let it through.
+    const config = path.join(dir, 'naive-band.yaml');
+    await fs.writeFile(config, carousel('naive', 'band.png'), 'utf8');
+    const project = await loadProject({ configFile: config });
+    const report = await doctor({ project });
+    const bad = report.diagnostics.filter((f) => f.code === 'layout/low-contrast');
+    expect(bad.length, 'the bright band under the headline went unreported').toBeGreaterThan(0);
+    expect(
+      bad.some((f) => /Averaged across the whole line/.test(f.message)),
+      `mean-blind case not recognised:\n${bad.map((f) => f.message).join('\n')}`,
+    ).toBe(true);
+  }, 180_000);
+
+  it('measures the type, not the empty leading above it', async () => {
+    // The probe unions the text's own line boxes, but the reduce used to be
+    // seeded with the element's bounding box, so the union could only ever grow
+    // back to it and the refinement was dead code. A display face with tight
+    // leading leaves a wide ink-free band inside the block, and contrast was
+    // being read there. Here the block covers a white band that no glyph
+    // touches; the type itself sits on near-black and is perfectly legible.
+    const config = path.join(dir, 'leading-band.yaml');
+    await fs.writeFile(config, carousel('leading', 'high-band.png'), 'utf8');
+    const project = await loadProject({ configFile: config });
+    const report = await doctor({ project });
+    const bad = report.diagnostics.filter((f) => f.code === 'layout/low-contrast');
+    expect(bad, bad.map((f) => f.message).join('\n')).toHaveLength(0);
   }, 180_000);
 });

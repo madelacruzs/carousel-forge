@@ -29,11 +29,26 @@ export interface RenderedFrame {
   frame: Frame;
   png: Buffer;
   probes: SlotProbe[];
+  /**
+   * The same slide with every text slot hidden, captured only when asked for.
+   *
+   * Contrast has to be measured against what sits *behind* the type. Sampling
+   * the finished slide instead measures the text against a mixture of the photo
+   * and its own glyphs, so a dense headline drags its own score down and the
+   * reading is really about ink coverage. Hiding the slots and re-shooting is
+   * the only theme-agnostic way to see the backdrop.
+   */
+  backdrop?: Buffer;
 }
 
 export interface RendererOptions {
   /** Extra time in ms to wait for fonts/images. Rarely needed. */
   settleMs?: number;
+}
+
+export interface RenderFrameOptions {
+  /** Also capture the slide with every text slot hidden. Used by `doctor`. */
+  backdrop?: boolean;
 }
 
 /**
@@ -96,6 +111,11 @@ const PROBE_SCRIPT = () => {
     range.selectNodeContents(el);
     const boxes = Array.from(range.getClientRects()).filter((r) => r.height > 0.5);
     // Union of the text's own line boxes, which is what a reader actually sees.
+    // Seeding this with the element's own box would defeat the point: a display
+    // face with tight leading leaves a band of empty space inside the block
+    // above the cap height, and measuring contrast there reports whatever the
+    // photograph is doing behind no ink at all.
+    const first = boxes[0];
     const content = boxes.reduce(
       (acc, r) => ({
         left: Math.min(acc.left, r.left),
@@ -103,7 +123,9 @@ const PROBE_SCRIPT = () => {
         right: Math.max(acc.right, r.right),
         bottom: Math.max(acc.bottom, r.bottom),
       }),
-      { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom },
+      first
+        ? { left: first.left, top: first.top, right: first.right, bottom: first.bottom }
+        : { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom },
     );
     range.detach();
 
@@ -203,7 +225,12 @@ export class Renderer {
     }
   }
 
-  async render(frame: Frame, theme: Theme, fontCss: string): Promise<RenderedFrame> {
+  async render(
+    frame: Frame,
+    theme: Theme,
+    fontCss: string,
+    options?: RenderFrameOptions,
+  ): Promise<RenderedFrame> {
     const html = renderFrameHtml({ frame, theme, fontCss });
     const { w, h } = frame.context.canvas;
 
@@ -301,7 +328,39 @@ export class Renderer {
 
       // Re-encode so no browser-supplied ancillary chunks reach the file.
       const png = await sharp(raw).png({ compressionLevel: 9, effort: 7 }).toBuffer();
-      return { frame, png, probes };
+
+      let backdrop: Buffer | undefined;
+      if (options?.backdrop) {
+        // Drop the ink, keep the boxes. `visibility: hidden` would also remove
+        // anything the theme paints *on* the slot — a label's dark lozenge, a
+        // highlight block behind a word — and those exist precisely to make the
+        // text legible, so hiding them invents failures. Making the glyphs
+        // transparent leaves every backdrop the reader actually sees in place
+        // and keeps the probe rectangles valid against this second capture.
+        await page.evaluate(() => {
+          const style = document.createElement('style');
+          style.textContent =
+            '[data-slot], [data-slot] * { color: transparent !important;' +
+            ' text-shadow: none !important; }';
+          document.head.append(style);
+        });
+        await page.evaluate(
+          () =>
+            new Promise<void>((resolve) => {
+              requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+            }),
+        );
+        const bare = await page.screenshot({
+          type: 'png',
+          animations: 'disabled',
+          caret: 'hide',
+          scale: 'css',
+          clip: { x: 0, y: 0, width: w, height: h },
+        });
+        backdrop = await sharp(bare).png({ compressionLevel: 9, effort: 7 }).toBuffer();
+      }
+
+      return { frame, png, probes, backdrop };
     });
   }
 

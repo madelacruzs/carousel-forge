@@ -299,6 +299,64 @@ export async function meanLuminance(png: Buffer, rect: Rect): Promise<number> {
   return count > 0 ? total / count : 0.5;
 }
 
+/**
+ * Relative luminance of each cell of a grid laid over a rectangle of a PNG.
+ *
+ * The mean over a whole text box is not good enough to judge legibility. A
+ * backlit photograph — blown-out sky on one side, dark trees on the other —
+ * averages out to a comfortable mid-grey while the words sitting on the bright
+ * half are unreadable. Averaging is blindest exactly where the check matters
+ * most, so callers look at the worst cell instead.
+ */
+export async function patchLuminances(png: Buffer, rect: Rect, grid = 8): Promise<number[]> {
+  const image = sharp(png);
+  const meta = await image.metadata();
+  const width = meta.width ?? 0;
+  const height = meta.height ?? 0;
+  if (!width || !height) return [];
+
+  const left = Math.max(0, Math.min(width - 1, Math.round(rect.x)));
+  const top = Math.max(0, Math.min(height - 1, Math.round(rect.y)));
+  const w = Math.max(1, Math.min(width - left, Math.round(rect.width)));
+  const h = Math.max(1, Math.min(height - top, Math.round(rect.height)));
+
+  const { data, info } = await image
+    .extract({ left, top, width: w, height: h })
+    .removeAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+
+  // Keep cells big enough to mean something. A handful of pixels of antialiased
+  // edge is not a legibility problem, so do not let the grid outrun the box.
+  const cols = Math.max(1, Math.min(grid, Math.floor(info.width / 24)));
+  const rows = Math.max(1, Math.min(grid, Math.floor(info.height / 12)));
+  const sums = new Float64Array(rows * cols);
+  const counts = new Float64Array(rows * cols);
+  const channels = info.channels;
+
+  for (let y = 0; y < info.height; y += 1) {
+    const cy = Math.min(rows - 1, Math.floor((y * rows) / info.height));
+    for (let x = 0; x < info.width; x += 1) {
+      const i = (y * info.width + x) * channels;
+      const l = relativeLuminance(
+        (data[i] ?? 0) / 255,
+        (data[i + 1] ?? 0) / 255,
+        (data[i + 2] ?? 0) / 255,
+      );
+      const cx = Math.min(cols - 1, Math.floor((x * cols) / info.width));
+      const cell = cy * cols + cx;
+      sums[cell] = (sums[cell] ?? 0) + l;
+      counts[cell] = (counts[cell] ?? 0) + 1;
+    }
+  }
+
+  const out: number[] = [];
+  for (let i = 0; i < sums.length; i += 1) {
+    if ((counts[i] ?? 0) > 0) out.push((sums[i] ?? 0) / (counts[i] ?? 1));
+  }
+  return out;
+}
+
 function channelLinear(value: number): number {
   return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
 }

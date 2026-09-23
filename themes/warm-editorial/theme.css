@@ -33,11 +33,45 @@ body {
    folded in at a lower weight: thin type over high-frequency detail reads
    badly even when the mean contrast is nominally fine. */
 .slide {
+  /* Sample every column, not just the left two. The title runs the full width
+     of the safe area, so a bright window or a lit tree in the right-hand third
+     sits behind the end of the headline — and a scrim blind to that column
+     leaves those words stranded on the one bright patch in the frame. */
   --copy-luma: calc(
-    max(var(--lum-r2c0), var(--lum-r2c1), var(--lum-r3c0), var(--lum-r3c1)) + 0.8 *
-      max(var(--lum-v2c0), var(--lum-v2c1), var(--lum-v3c0), var(--lum-v3c1))
+    max(
+        var(--lum-r2c0),
+        var(--lum-r2c1),
+        var(--lum-r2c2),
+        var(--lum-r3c0),
+        var(--lum-r3c1),
+        var(--lum-r3c2)
+      ) +
+      0.8 *
+      max(
+        var(--lum-v2c0),
+        var(--lum-v2c1),
+        var(--lum-v2c2),
+        var(--lum-v3c0),
+        var(--lum-v3c1),
+        var(--lum-v3c2)
+      )
   );
-  --auto-bottom: clamp(0, calc((var(--copy-luma) - 0.14) * 1.75), 0.82);
+  /* Darken until what is behind the copy reaches a target luminance, rather
+     than by a flat amount. Gold type only clears WCAG against a backdrop below
+     roughly 0.14, and a linear ramp is far too gentle in the midrange: a tent
+     or a lit wall at 0.25 needs ~0.45 alpha, not the ~0.19 a straight line
+     gives it. Solving (1 - target/luma) applies exactly as much scrim as the
+     photograph actually calls for, and no more. The max() guards a fully black
+     region, where dividing by zero would invalidate the declaration. */
+  --copy-target: 0.14;
+  /* The gain lets the curve still reach the cap on a blown-out region: without
+     it the most this can ever ask for is 1 - target, which lands short of what
+     a white wall needs. */
+  --auto-bottom: clamp(
+    0,
+    calc((1 - var(--copy-target) / max(var(--copy-luma), 0.001)) * 1.15),
+    0.92
+  );
   --corner-luma: var(--lum-r0c0);
 }
 
@@ -348,8 +382,11 @@ body {
   backdrop-filter: blur(2px);
 }
 
+/* Pane A's label shares the top band with the slide index, so it starts
+   clear of it instead of stacking on top. */
 .split-pane--a .split-label {
   top: var(--safe-top);
+  left: calc(var(--safe-left) + 76px);
 }
 
 /* The copy sits over the lower pane, which is imageB — so the cells that

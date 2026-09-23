@@ -35,7 +35,9 @@ export async function doctor(options: DoctorOptions): Promise<DoctorReport> {
       try {
         rendered = [];
         for (const frame of project.frames) {
-          rendered.push(await renderer.render(frame, project.theme, project.fontCss));
+          rendered.push(
+            await renderer.render(frame, project.theme, project.fontCss, { backdrop: true }),
+          );
         }
       } finally {
         await renderer.close();
