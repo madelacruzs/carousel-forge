@@ -11,6 +11,7 @@ carousel.yaml  ─┐
 images/         ├─►  carousel-forge build  ─►  out/slide-01.png … slide-07.png
 narratives/     │                              out/contact-sheet.png
 themes/<name>/ ─┘                              out/caption.md
+                                               out/slide-outline.md
 ```
 
 Canva is a design tool that makes you a designer. This is a writing tool that
@@ -48,6 +49,16 @@ tells you a hook looks weak and points at the formula library, then stops.
 Machine-generated marketing copy reads like machine-generated marketing copy.
 The CLI stays deterministic and mechanical so you can trust it; the
 intelligence lives in the agent driving it, or in you.
+
+### Your caption is yours
+
+`build` writes `caption.md` once, as an empty form. The moment you write in it
+the file stops being regenerated — a rebuild after fixing one slide will not
+cost you the caption you spent an hour on. The mechanical slide list lives
+separately in `slide-outline.md`, which is rewritten every run, so the two
+requirements never collide. If the slides changed underneath a caption that
+was preserved, `build` names the slides that moved so you know it may be
+stale. `build --force-caption` throws the caption away and starts over.
 
 ---
 
@@ -226,7 +237,7 @@ never hardcoded values.
 |                                                                              |                                                   |
 | ---------------------------------------------------------------------------- | ------------------------------------------------- |
 | `init [--theme] [--narrative] [--dir]`                                       | Scaffold `carousel.yaml`, `images/`, `assets/`    |
-| `build [--watch] [--out <dir>]`                                              | Render slides, contact sheet and caption scaffold |
+| `build [--watch] [--out <dir>] [--force-caption]`                            | Render slides, contact sheet and caption scaffold |
 | `preview [--port]`                                                           | Build, then serve `out/` on localhost             |
 | `doctor`                                                                     | Lint layout and copy                              |
 | `themes list` / `themes new <name> [--from]`                                 | Inspect and create themes                         |

@@ -10,3 +10,6 @@ tests/__fixtures__/tmp/
 
 # Local validation only. Never commit personal photos.
 sandbox/
+
+# scratch commit message buffer
+.commitmsg

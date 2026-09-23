@@ -3,9 +3,14 @@ import { renderContactSheet } from '../render/contactSheet.js';
 import { Renderer, type RenderedFrame } from '../render/renderer.js';
 import { PngTarget } from '../render/targets/png.js';
 import type { OutputTarget } from '../render/targets/target.js';
-import { displayPath, writeBinary, writeText } from '../util/fs.js';
+import { displayPath, readText, pathExists, writeBinary, writeText } from '../util/fs.js';
 import { log } from '../util/log.js';
-import { renderCaptionScaffold } from './caption.js';
+import {
+  captionIsPristine,
+  outlineDelta,
+  renderCaptionScaffold,
+  renderSlideOutline,
+} from './caption.js';
 import { loadProject, type ProjectContext } from './context.js';
 
 export interface BuildOptions {
@@ -15,6 +20,8 @@ export interface BuildOptions {
   targets?: OutputTarget[];
   contactSheet?: boolean;
   caption?: boolean;
+  /** Overwrite `caption.md` even if it has been written in. */
+  forceCaption?: boolean;
   offline?: boolean;
   /** Reuse an already-loaded project (watch mode) or an open browser. */
   project?: ProjectContext;
@@ -27,6 +34,9 @@ export interface BuildResult {
   files: string[];
   contactSheetFile?: string;
   captionFile?: string;
+  outlineFile?: string;
+  /** True when an edited `caption.md` was left alone instead of regenerated. */
+  captionPreserved?: boolean;
   durationMs: number;
 }
 
@@ -79,9 +89,40 @@ export async function build(options: BuildOptions): Promise<BuildResult> {
     }
 
     let captionFile: string | undefined;
+    let outlineFile: string | undefined;
+    let captionPreserved = false;
     if (options.caption !== false) {
+      // The outline is derived from the slides, so it is always rewritten.
+      outlineFile = path.join(outDir, 'slide-outline.md');
+      const outline = renderSlideOutline(project.carousel.data, project.frames);
+      const previousOutline = (await pathExists(outlineFile)) ? await readText(outlineFile) : '';
+      await writeText(outlineFile, outline);
+      files.push(outlineFile);
+
       captionFile = path.join(outDir, 'caption.md');
-      await writeText(captionFile, renderCaptionScaffold(project.carousel.data, project.frames));
+      const existing = (await pathExists(captionFile)) ? await readText(captionFile) : undefined;
+      const writable =
+        existing === undefined || options.forceCaption === true || captionIsPristine(existing);
+
+      if (writable) {
+        await writeText(captionFile, renderCaptionScaffold(project.carousel.data));
+      } else {
+        // Someone wrote a caption here. A rebuild after tweaking one slide must
+        // not cost them that. Say so, and say what moved underneath them.
+        captionPreserved = true;
+        const changed = previousOutline ? outlineDelta(previousOutline, outline) : undefined;
+        const note =
+          changed === undefined
+            ? 'There is no previous slide outline to compare against, so it may be stale.'
+            : changed.length > 0
+              ? 'The slides have changed since it was written, so it may now be stale:\n' +
+                changed.map((line) => `    ${line}`).join('\n')
+              : 'The slide outline is unchanged.';
+        log.warn(
+          `${displayPath(captionFile)} has been edited, so it was left untouched. ${note}` +
+            `\n    Run \`build --force-caption\` to replace it with a fresh scaffold.`,
+        );
+      }
       files.push(captionFile);
     }
 
@@ -91,6 +132,8 @@ export async function build(options: BuildOptions): Promise<BuildResult> {
       files,
       ...(contactSheetFile ? { contactSheetFile } : {}),
       ...(captionFile ? { captionFile } : {}),
+      ...(outlineFile ? { outlineFile } : {}),
+      ...(captionPreserved ? { captionPreserved } : {}),
       durationMs: Date.now() - started,
     };
   } finally {

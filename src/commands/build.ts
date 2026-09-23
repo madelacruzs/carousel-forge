@@ -16,6 +16,7 @@ export interface BuildCommandOptions {
   offline?: boolean;
   contactSheet?: boolean;
   caption?: boolean;
+  forceCaption?: boolean;
 }
 
 function report(result: BuildResult): void {
@@ -31,6 +32,7 @@ export async function buildCommand(options: BuildCommandOptions): Promise<BuildR
       ...(options.offline !== undefined ? { offline: options.offline } : {}),
       ...(options.contactSheet !== undefined ? { contactSheet: options.contactSheet } : {}),
       ...(options.caption !== undefined ? { caption: options.caption } : {}),
+      ...(options.forceCaption !== undefined ? { forceCaption: options.forceCaption } : {}),
     });
 
   if (!options.watch) {
@@ -66,6 +68,7 @@ export async function buildCommand(options: BuildCommandOptions): Promise<BuildR
         renderer,
         ...(options.contactSheet !== undefined ? { contactSheet: options.contactSheet } : {}),
         ...(options.caption !== undefined ? { caption: options.caption } : {}),
+        ...(options.forceCaption !== undefined ? { forceCaption: options.forceCaption } : {}),
       });
       report(result);
       return result;

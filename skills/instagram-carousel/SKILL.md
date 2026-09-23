@@ -271,14 +271,26 @@ result back to the file.
 - **The first comment is real estate.** Put the link, the long version, or a
   question that invites replies.
 
+**Once written, the caption is protected.** `build` stops regenerating
+`caption.md` the moment it contains anything other than the scaffold, so
+rebuilding after a copy fix will not destroy it. Two consequences for you:
+
+- Never run `build --force-caption` on a project with a written caption unless
+  the human explicitly asks. It is the one flag that destroys their writing.
+- If `build` warns that the caption was preserved and lists slides that
+  changed, read the caption again — it may now describe slides that no longer
+  exist. Propose the update; do not silently rewrite it.
+
+The mechanical slide list lives in `out/slide-outline.md`, which is rebuilt
+every run. Read that for the current structure; never hand-edit it.
+
 ---
 
 ## Command reference
 
 ```bash
 carousel-forge init [--theme <name>] [--narrative <name>]   # scaffold a project
-carousel-forge build [--watch] [--out <dir>]                # render to out/
-carousel-forge preview                                      # contact sheet + local server
+carousel-forge build [--watch] [--out <dir>]                # render to out/carousel-forge preview                                      # contact sheet + local server
 carousel-forge doctor                                       # lint layout and copy
 carousel-forge themes list
 carousel-forge themes new <name> [--from <existing>]

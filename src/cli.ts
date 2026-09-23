@@ -68,6 +68,7 @@ program
   .option('--offline', 'never reach for the network, even for uncached fonts')
   .option('--no-contact-sheet', 'skip out/contact-sheet.png')
   .option('--no-caption', 'skip out/caption.md')
+  .option('--force-caption', 'overwrite caption.md even if it has been written in')
   .action(async (options) => {
     const configFile = resolveConfig(options.config);
     await buildCommand({
@@ -77,6 +78,7 @@ program
       offline: Boolean(options.offline),
       contactSheet: options.contactSheet !== false,
       caption: options.caption !== false,
+      forceCaption: Boolean(options.forceCaption),
     });
   });
 
