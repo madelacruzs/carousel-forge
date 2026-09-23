@@ -373,12 +373,23 @@ export function contrastRatio(a: number, b: number): number {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
-/** Parse `rgb()` / `rgba()` / `#rrggbb` into 0..1 channels. */
+/** Parse `rgb()` / `rgba()` / `color(srgb …)` / `#rrggbb` into 0..1 channels. */
 export function parseCssColor(value: string): [number, number, number] | null {
   const trimmed = value.trim();
   const rgb = /^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/i.exec(trimmed);
   if (rgb) {
     return [Number(rgb[1]) / 255, Number(rgb[2]) / 255, Number(rgb[3]) / 255];
+  }
+  // Chromium serialises `color-mix(in srgb, …)` — which themes use to adapt a
+  // colour to the photograph — as `color(srgb r g b)`, with channels already
+  // in 0..1. Failing to parse it here does not raise a warning, it removes
+  // one: the caller reads null as "no colour to judge" and skips the contrast
+  // check for that slot entirely. warm-editorial's slide number is exactly
+  // such a slot, so it went unchecked until this was added.
+  const srgb = /^color\(\s*srgb\s+(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)/i.exec(trimmed);
+  if (srgb) {
+    const clamp = (n: number) => Math.min(1, Math.max(0, n));
+    return [clamp(Number(srgb[1])), clamp(Number(srgb[2])), clamp(Number(srgb[3]))];
   }
   const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(trimmed);
   if (hex) {

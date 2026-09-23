@@ -43,7 +43,7 @@ function hintForIssue(issue: z.ZodIssue): string | undefined {
     return 'focal is a pair of fractions, e.g. focal: [0.4, 0.3] — 0 is the left/top edge, 1 the right/bottom edge.';
   }
   if (where.endsWith('overlay')) {
-    return 'overlay is a number between 0 (no darkening) and 1 (fully dark).';
+    return 'overlay is a number between 0 (as light as the theme allows) and 1 (fully dark). Themes may floor it: warm-editorial keeps a minimum scrim so text stays legible, so 0 is not necessarily no darkening.';
   }
   if (where.endsWith('accent') || where.endsWith('ink')) {
     return 'colours are hex strings, e.g. "#E8C47A". Quote them so YAML does not read # as a comment.';
