@@ -264,6 +264,14 @@ exactly the case that matters; a single worst pixel is the opposite error and
 fires on any bright speck. Warnings name the worst ratio and how much of the
 line is affected.
 
+**Fonts**, measured in the browser: a character the requested typeface did not
+actually supply. A missing glyph is invisible — the browser quietly swaps in a
+system font for that character alone and the slide still looks like competent
+typography — so a corrupt or partial font cache can substitute the entire
+design without anything looking wrong. `font/missing-glyphs` is an error, not a
+warning, and names both the typeface and the characters it failed to provide.
+Spanish accents and inverted punctuation are the usual first casualties.
+
 **Copy**, read from the source: a first slide that does not look like a hook,
 no call to action anywhere, slides over their role's word and line budget,
 required slots left empty, too many words on one slide, consecutive slides

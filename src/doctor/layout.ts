@@ -76,6 +76,28 @@ export async function auditLayout(
         });
       }
 
+      // --- the font actually being used -------------------------------------
+      // A substituted font is invisible unless you know both typefaces, so
+      // nothing else in the lint would ever catch it. It is reported as an
+      // error rather than a warning because the export is simply wrong: the
+      // slide is not in the typeface the theme asked for.
+      if (probe.missingGlyphs && probe.missingGlyphs.length > 0) {
+        const chars = probe.missingGlyphs.slice(0, 12).join(' ');
+        const more =
+          probe.missingGlyphs.length > 12 ? ` (+${probe.missingGlyphs.length - 12} more)` : '';
+        const family = (probe.fontFamily || '')
+          .split(',')[0]
+          ?.trim()
+          .replace(/^["']|["']$/g, '');
+        diagnostics.push({
+          level: 'error',
+          code: 'font/missing-glyphs',
+          slide: slideNumber,
+          message: `"${probe.slot}" uses characters ${family ? `${family} ` : ''}does not supply, so a system font was substituted for them: ${chars}${more}`,
+          hint: 'the slide will not look like the theme. Delete the font cache and rebuild to refetch, or pick a face that covers this language.',
+        });
+      }
+
       // --- readable at thumbnail size --------------------------------------
       // Only the title has to survive a grid preview. Body copy is read after
       // the tap, so holding it to the same bar would be noise, not a finding.

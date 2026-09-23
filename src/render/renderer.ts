@@ -24,6 +24,13 @@ export interface SlotProbe {
   lineCount: number;
   /** `true` when the content is pushed outside whatever clips it. */
   clipped: boolean;
+  /** Computed `font-family` stack for the slot. */
+  fontFamily: string;
+  /**
+   * Characters the requested webfont did not supply, so Chromium substituted
+   * a system font for them. Empty in a healthy render.
+   */
+  missingGlyphs: string[];
 }
 
 export interface RenderedFrame {
@@ -76,6 +83,52 @@ const PROBE_SCRIPT = () => {
       node = node.parentElement;
     }
     return null;
+  };
+
+  /**
+   * Characters the slot's own webfont does not supply.
+   *
+   * A missing glyph is invisible: Chromium silently substitutes a system font
+   * per character, so the slide still looks like type and nothing anywhere
+   * reports a problem. That is how a cache holding a subset with no latin
+   * glyphs rendered every headline in a fallback serif without a word.
+   *
+   * `document.fonts.check()` cannot answer this — it returns true when *no*
+   * face matches the family, which is precisely the failure being looked for.
+   * So measure instead: a character is missing when its advance width is
+   * identical to the fallback's with the webfont requested first. Two
+   * different fallbacks are compared because a single one can coincide by
+   * chance; matching both is not a coincidence.
+   */
+  const missingGlyphs = (familyStack: string, text: string): string[] => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    // Only the first family in the stack is the one the theme actually asked
+    // for. Passing the whole stack would let the theme's own `serif` fallback
+    // satisfy the measurement before the probe's fallback ever applied, and
+    // the check would report a clean bill of health for every slide.
+    const family = (familyStack || '').split(',')[0]?.trim() ?? '';
+    if (!ctx || !family) return [];
+    const generic = /^(serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-[a-z-]+)$/i;
+    if (generic.test(family.replace(/^["']|["']$/g, ''))) return [];
+    const width = (font: string, ch: string): number => {
+      ctx.font = font;
+      return ctx.measureText(ch).width;
+    };
+    const missing: string[] = [];
+    const seen = new Set<string>();
+    for (const ch of text) {
+      // Whitespace has no glyph to miss, and punctuation is too likely to
+      // share an advance with the fallback to judge safely.
+      if (seen.has(ch) || /\s/.test(ch)) continue;
+      seen.add(ch);
+      const mono = width(`40px monospace`, ch);
+      const serif = width(`40px serif`, ch);
+      const withMono = width(`40px ${family}, monospace`, ch);
+      const withSerif = width(`40px ${family}, serif`, ch);
+      if (withMono === mono && withSerif === serif && mono !== serif) missing.push(ch);
+    }
+    return missing;
   };
 
   /**
@@ -158,6 +211,11 @@ const PROBE_SCRIPT = () => {
             ? Math.round(rect.height / lineHeight)
             : 0,
       clipped,
+      fontFamily: style.fontFamily,
+      missingGlyphs: missingGlyphs(
+        style.fontFamily,
+        (el.textContent || '').replace(/\s+/g, ' ').trim(),
+      ),
     });
   }
   return out;
