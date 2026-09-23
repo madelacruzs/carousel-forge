@@ -45,6 +45,18 @@ export function displayPath(target: string, from: string = process.cwd()): strin
  * Root of the installed package, used to locate the built-in `themes/` and
  * `narratives/` directories regardless of whether we run from `src` or `dist`.
  */
+/**
+ * Output belongs next to the carousel it came from, not next to wherever the
+ * user happened to be standing. Building `-c ../other/carousel.yaml` and having
+ * the slides land in the current directory is a quiet way to review stale PNGs
+ * while believing they are fresh. An explicit `--out` is taken at face value
+ * and stays relative to the shell.
+ */
+export function resolveOutDir(configFile: string, explicit: string | undefined): string {
+  if (explicit === undefined) return path.join(path.dirname(path.resolve(configFile)), 'out');
+  return path.resolve(explicit);
+}
+
 export function packageRoot(): string {
   let dir = path.dirname(fileURLToPath(import.meta.url));
   for (let i = 0; i < 8; i += 1) {

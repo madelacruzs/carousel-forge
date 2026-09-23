@@ -1,6 +1,7 @@
 import { chromium, type Browser, type BrowserContext, type Page } from 'playwright';
 import sharp from 'sharp';
 import { ForgeError } from '../errors.js';
+import { log } from '../util/log.js';
 import type { Theme } from '../theme/load.js';
 import type { Frame } from './frame.js';
 import { renderFrameHtml } from './html.js';
@@ -236,7 +237,50 @@ export class Renderer {
 
     return this.withPage(w, h, async (page, served) => {
       await page.setContent(html, { waitUntil: 'load' });
-      await page.evaluate(() => document.fonts.ready);
+
+      // `document.fonts.ready` alone is not enough. It resolves as soon as the
+      // document has no *pending* font loads, and a face is only requested once
+      // layout asks for it. On a fast machine the styled text has already been
+      // laid out by `load` and everything works; on a loaded CI runner the
+      // promise can resolve before any face has been requested, the screenshot
+      // catches fallback glyphs, and the next build - identical inputs - wins
+      // the race and produces different pixels. Force every declared face to
+      // load first, then wait.
+      const unresolved = await page.evaluate(async () => {
+        interface DeclaredFace {
+          family: string;
+          weight: string;
+          style: string;
+          status: string;
+          load(): Promise<unknown>;
+        }
+        const declared = (): DeclaredFace[] => {
+          const out: DeclaredFace[] = [];
+          // `forEach` rather than `Array.from`: FontFaceSet is only iterable
+          // under lib.dom.iterable, which this package does not enable.
+          document.fonts.forEach((face) => out.push(face as unknown as DeclaredFace));
+          return out;
+        };
+        await Promise.all(
+          declared().map(async (face) => {
+            try {
+              await face.load();
+            } catch {
+              /* reported below via its status */
+            }
+          }),
+        );
+        await document.fonts.ready;
+        return declared()
+          .filter((face) => face.status !== 'loaded')
+          .map((face) => `${face.family} ${face.weight} ${face.style}`);
+      });
+      if (unresolved.length > 0) {
+        log.warn(
+          `These faces never loaded and will render as a system fallback: ${unresolved.join(', ')}. ` +
+            'Output from this build will not match a machine where they load.',
+        );
+      }
       await page.evaluate(async () => {
         const images = Array.from(document.images);
         await Promise.all(

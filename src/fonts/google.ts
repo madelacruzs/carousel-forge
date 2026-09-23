@@ -82,6 +82,24 @@ async function download(url: string, init?: RequestInit): Promise<Buffer> {
   return Buffer.from(await response.arrayBuffer());
 }
 
+/** woff2 files start with `wOF2`. A proxy error page or a truncated body does not. */
+function looksLikeFont(bytes: Buffer): boolean {
+  if (bytes.length < 1024) return false;
+  const magic = bytes.subarray(0, 4).toString('latin1');
+  return magic === 'wOF2' || magic === 'wOFF' || magic === '\0\u0001\0\0' || magic === 'OTTO';
+}
+
+/**
+ * Write a font into the cache via a temporary file in the same directory.
+ * A half-written woff2 that keeps its final name would be reused by every
+ * later build on this machine, which is a permanent, invisible corruption.
+ */
+async function commitFont(file: string, bytes: Buffer): Promise<void> {
+  const tmp = `${file}.${process.pid}.tmp`;
+  await fs.writeFile(tmp, bytes);
+  await fs.rename(tmp, file);
+}
+
 /**
  * Ensure every requested family/weight/style is present in the cache.
  * Returns the faces that are available; anything that could not be fetched is
@@ -120,13 +138,34 @@ export async function ensureGoogleFonts(requests: FontRequest[]): Promise<FontFa
         headers: { 'User-Agent': UA },
       }).then((b) => b.toString('utf8'));
 
+      // Fetch the whole family into memory before writing any of it.
+      //
+      // This is load-bearing for determinism. Writing each face as it arrives
+      // means a failure halfway through leaves some weights cached and others
+      // not: the build that hit the failure renders with a partial family and
+      // lets the browser synthesise the rest, while the next build on the same
+      // machine finds those files cached and renders the real glyphs. Same
+      // inputs, different pixels, and only ever on the first build after a
+      // network hiccup - the hardest possible thing to reproduce.
+      const staged: { face: FontFace; bytes: Buffer }[] = [];
       for (const face of parseGoogleCss(css)) {
         if (!request.weights.includes(face.weight)) continue;
         if (!request.styles.includes(face.style)) continue;
         const file = cacheFileFor(request.family, face.weight, face.style);
         if (await pathExists(file)) continue;
-        await fs.writeFile(file, await download(face.url));
-        available.push({ family: request.family, weight: face.weight, style: face.style, file });
+        const bytes = await download(face.url);
+        if (!looksLikeFont(bytes)) {
+          throw new Error(`${face.url} did not return a font file`);
+        }
+        staged.push({
+          face: { family: request.family, weight: face.weight, style: face.style, file },
+          bytes,
+        });
+      }
+
+      for (const { face, bytes } of staged) {
+        await commitFont(face.file, bytes);
+        available.push(face);
       }
     } catch (error) {
       log.warn(

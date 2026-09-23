@@ -1,8 +1,14 @@
-import { describe, expect, it, afterAll } from 'vitest';
+import { describe, expect, it, afterAll, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { fontFaceCss, themeFontFaces, type FontFace } from '../src/fonts/google.js';
+import {
+  ensureGoogleFonts,
+  fontCacheDir,
+  fontFaceCss,
+  themeFontFaces,
+  type FontFace,
+} from '../src/fonts/google.js';
 
 /**
  * Fonts are the quietest way to lose determinism. Nothing throws, nothing is
@@ -65,5 +71,98 @@ describe('font face CSS', () => {
       );
     expect(order(cssA)).toEqual(['Cormorant|400', 'Inter|400', 'Inter|700']);
     expect(order(cssB)).toEqual(order(cssA));
+  });
+});
+
+/**
+ * A family is cached all at once or not at all.
+ *
+ * Writing each weight as it arrives means a network failure halfway through
+ * leaves some weights on disk and others missing. The build that hit the
+ * failure renders with a partial family and lets Chromium synthesise the rest;
+ * the very next build on that machine finds those files cached and renders the
+ * real glyphs. Identical inputs, different pixels, once per machine.
+ */
+describe('font cache writes', () => {
+  let cache: string;
+  let fetchSpy: ReturnType<typeof vi.spyOn>;
+
+  const CSS = `
+    @font-face { font-family: 'Inter'; font-style: normal; font-weight: 400; src: url(https://x/400.woff2) format('woff2'); }
+    @font-face { font-family: 'Inter'; font-style: normal; font-weight: 700; src: url(https://x/700.woff2) format('woff2'); }
+  `;
+
+  const woff2 = (seed: number) =>
+    Buffer.concat([Buffer.from('wOF2'), Buffer.alloc(2048, seed)]) as unknown as ArrayBufferLike;
+
+  beforeEach(async () => {
+    cache = await fs.mkdtemp(path.join(os.tmpdir(), 'carousel-forge-cache-'));
+    dirs.push(cache);
+    process.env.CAROUSEL_FORGE_CACHE = cache;
+  });
+
+  afterEach(() => {
+    fetchSpy?.mockRestore();
+    delete process.env.CAROUSEL_FORGE_CACHE;
+  });
+
+  function respond(handler: (url: string) => Promise<Response>) {
+    fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation((input) => handler(String(input))) as never;
+  }
+
+  const request = [{ family: 'Inter', weights: [400, 700], styles: ['normal' as const] }];
+
+  it('caches nothing when one weight fails to download', async () => {
+    respond(async (url) => {
+      if (url.includes('css2')) return new Response(CSS, { status: 200 });
+      if (url.endsWith('400.woff2')) return new Response(woff2(1), { status: 200 });
+      return new Response('nope', { status: 503, statusText: 'Service Unavailable' });
+    });
+
+    const faces = await ensureGoogleFonts(request);
+
+    expect(faces).toEqual([]);
+    expect(await fs.readdir(fontCacheDir())).toEqual([]);
+  });
+
+  it('caches the whole family once every weight arrives', async () => {
+    respond(async (url) => {
+      if (url.includes('css2')) return new Response(CSS, { status: 200 });
+      return new Response(woff2(url.endsWith('400.woff2') ? 1 : 2), { status: 200 });
+    });
+
+    const faces = await ensureGoogleFonts(request);
+
+    expect(faces.map((f) => f.weight)).toEqual([400, 700]);
+    expect((await fs.readdir(fontCacheDir())).sort()).toEqual([
+      'inter-400-normal.woff2',
+      'inter-700-normal.woff2',
+    ]);
+  });
+
+  it('refuses to cache a response that is not a font', async () => {
+    respond(async (url) => {
+      if (url.includes('css2')) return new Response(CSS, { status: 200 });
+      // A captive portal or proxy answering 200 with an HTML error page.
+      return new Response('<html>blocked</html>', { status: 200 });
+    });
+
+    const faces = await ensureGoogleFonts(request);
+
+    expect(faces).toEqual([]);
+    expect(await fs.readdir(fontCacheDir())).toEqual([]);
+  });
+
+  it('leaves no temporary files behind', async () => {
+    respond(async (url) => {
+      if (url.includes('css2')) return new Response(CSS, { status: 200 });
+      return new Response(woff2(3), { status: 200 });
+    });
+
+    await ensureGoogleFonts(request);
+
+    expect((await fs.readdir(fontCacheDir())).filter((f) => f.includes('.tmp'))).toEqual([]);
   });
 });

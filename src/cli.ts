@@ -14,7 +14,7 @@ import { previewCommand } from './commands/preview.js';
 import { themesListCommand, themesNewCommand } from './commands/themes.js';
 import { formatForgeError, isForgeError } from './errors.js';
 import { log, setQuiet } from './util/log.js';
-import { packageRoot } from './util/fs.js';
+import { packageRoot, resolveOutDir } from './util/fs.js';
 
 const require = createRequire(import.meta.url);
 const pkg = require(path.join(packageRoot(), 'package.json')) as { version: string };
@@ -63,15 +63,16 @@ program
   .command('build')
   .description('render every slide to PNG, plus a contact sheet and a caption scaffold')
   .option('-c, --config <path>', 'path to carousel.yaml', 'carousel.yaml')
-  .option('-o, --out <dir>', 'output directory', 'out')
+  .option('-o, --out <dir>', 'output directory (default: next to carousel.yaml)')
   .option('-w, --watch', 'rebuild whenever a file changes')
   .option('--offline', 'never reach for the network, even for uncached fonts')
   .option('--no-contact-sheet', 'skip out/contact-sheet.png')
   .option('--no-caption', 'skip out/caption.md')
   .action(async (options) => {
+    const configFile = resolveConfig(options.config);
     await buildCommand({
-      configFile: resolveConfig(options.config),
-      outDir: path.resolve(options.out),
+      configFile,
+      outDir: resolveOutDir(configFile, options.out),
       watch: Boolean(options.watch),
       offline: Boolean(options.offline),
       contactSheet: options.contactSheet !== false,
@@ -83,14 +84,15 @@ program
   .command('preview')
   .description('build, then serve the slides and contact sheet on localhost')
   .option('-c, --config <path>', 'path to carousel.yaml', 'carousel.yaml')
-  .option('-o, --out <dir>', 'output directory', 'out')
+  .option('-o, --out <dir>', 'output directory (default: next to carousel.yaml)')
   .option('-p, --port <number>', 'port to listen on', '4321')
   .option('--no-rebuild', 'serve whatever is already in the output directory')
   .option('--offline', 'never reach for the network, even for uncached fonts')
   .action(async (options) => {
+    const configFile = resolveConfig(options.config);
     await previewCommand({
-      configFile: resolveConfig(options.config),
-      outDir: path.resolve(options.out),
+      configFile,
+      outDir: resolveOutDir(configFile, options.out),
       port: Number(options.port),
       rebuild: options.rebuild !== false,
       offline: Boolean(options.offline),

@@ -232,6 +232,12 @@ never hardcoded values.
 | `themes list` / `themes new <name> [--from]`                                 | Inspect and create themes                         |
 | `narratives list [--verbose]` / `narratives new <name>` / `narratives hooks` | Inspect and create narratives                     |
 
+Every command takes `-c, --config <path>`. Output defaults to an `out/`
+directory **beside the carousel file**, not beside your shell — so
+`carousel-forge build -c projects/vancouver/carousel.yaml` writes to
+`projects/vancouver/out/`. Pass `--out <dir>` to override; an explicit path is
+resolved against the current directory.
+
 ### What `doctor` checks
 
 **Layout**, measured against the rendered DOM and sampled from the actual PNG:
