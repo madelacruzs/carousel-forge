@@ -1,0 +1,110 @@
+{{!--
+  studio-minimal / template.html
+  Structure comes from the rules, not from boxes. Everything is anchored to the
+  same grid so a carousel reads as one object rather than five posters.
+--}}
+<div class="slide">
+
+  {{#if (eq layout "split")}}
+    <div class="split">
+      <div class="split-pane">
+        {{#if hasImage}}<div class="split-photo split-photo--a"></div>{{/if}}
+        {{#if labelA}}<p class="split-label" data-slot="labelA">{{labelA}}</p>{{/if}}
+      </div>
+      <div class="split-pane">
+        {{#if hasImageB}}<div class="split-photo split-photo--b"></div>{{/if}}
+        {{#if labelB}}<p class="split-label" data-slot="labelB">{{labelB}}</p>{{/if}}
+      </div>
+    </div>
+    <div class="wash"></div>
+  {{else if (ne layout "cta")}}
+    {{#if hasImage}}<div class="photo"></div>{{/if}}
+    <div class="wash"></div>
+  {{/if}}
+
+  {{! faint structural rules — the only ornament in this theme }}
+  <div class="grid" aria-hidden="true">
+    <span class="rule rule--v rule--v1"></span>
+    <span class="rule rule--v rule--v2"></span>
+    <span class="rule rule--h rule--h1"></span>
+    <span class="rule rule--h rule--h2"></span>
+  </div>
+
+  <header class="head">
+    <div class="brand">
+      <span class="bullet" aria-hidden="true"></span>
+      {{#if eyebrow}}
+        <span class="eyebrow" data-slot="eyebrow">{{eyebrow}}</span>
+      {{/if}}
+    </div>
+
+    <div class="social" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.4">
+        <rect x="3" y="3" width="18" height="18" rx="5"/>
+        <circle cx="12" cy="12" r="4"/>
+        <circle cx="17.4" cy="6.6" r="1"/>
+      </svg>
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.4">
+        <path d="M21 5.5a7 7 0 0 1-2.2.8A3.5 3.5 0 0 0 12.8 9a9.9 9.9 0 0 1-7.2-3.7 3.5 3.5 0 0 0 1.1 4.7 3.4 3.4 0 0 1-1.6-.5 3.5 3.5 0 0 0 2.8 3.5 3.5 3.5 0 0 1-1.6.1 3.5 3.5 0 0 0 3.3 2.4A7.1 7.1 0 0 1 3 17.1a9.9 9.9 0 0 0 15.3-8.8A7 7 0 0 0 21 5.5z"/>
+      </svg>
+      {{#if numbering}}<span class="index" data-slot="index">{{indexLabel}}</span>{{/if}}
+    </div>
+  </header>
+
+  {{#if (eq layout "cta")}}
+
+    <div class="cta-stack">
+      {{#if logo}}<img class="cta-logo" src="{{logo}}" alt="">{{/if}}
+      {{#if title}}
+        <h1 class="title title--cta" data-slot="title">
+          {{#if titleParts}}
+            <span class="line">{{titleParts.before}}<mark>{{titleParts.mark}}</mark>{{titleParts.after}}</span>
+          {{else}}
+            {{#each titleLines}}<span class="line">{{this}}</span>{{/each}}
+          {{/if}}
+        </h1>
+      {{/if}}
+      <span class="hair" aria-hidden="true"></span>
+      {{#if cta}}<p class="cta" data-slot="cta">{{cta}}</p>{{/if}}
+      {{#if note}}<p class="fineprint fineprint--center" data-slot="note">{{note}}</p>{{/if}}
+    </div>
+
+  {{else}}
+
+    <div class="content">
+      {{#if title}}
+        <h1 class="title" data-slot="title">
+          {{#if titleParts}}
+            <span class="line">{{titleParts.before}}<mark>{{titleParts.mark}}</mark>{{titleParts.after}}</span>
+          {{else}}
+            {{#each titleLines}}<span class="line">{{this}}</span>{{/each}}
+          {{/if}}
+        </h1>
+      {{/if}}
+
+      {{#if bullets.length}}
+        <ul class="bullets" data-slot="bullets">
+          {{#each bullets}}<li>{{this}}</li>{{/each}}
+        </ul>
+      {{/if}}
+
+      {{#if body}}
+        <div class="body" data-slot="body">
+          {{#each bodyLines}}<p>{{this}}</p>{{/each}}
+        </div>
+      {{/if}}
+
+      {{#if cta}}<p class="cta cta--inline" data-slot="cta">{{cta}}</p>{{/if}}
+    </div>
+
+    <footer class="foot">
+      <div class="foot-brand">
+        {{#if logo}}<img class="logo" src="{{logo}}" alt="">{{/if}}
+        {{#if handle}}<span class="wordmark" data-slot="handle">{{handle}}</span>{{/if}}
+      </div>
+      {{#if note}}<p class="fineprint" data-slot="note">{{note}}</p>{{/if}}
+    </footer>
+
+  {{/if}}
+
+</div>

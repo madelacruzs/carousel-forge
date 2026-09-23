@@ -1,0 +1,54 @@
+{
+  "name": "poster",
+  "description": "Single-slide announcement format. Very large serif headline, a thin rule, a narrow measure of copy, and a bottom bar with the CTA and the URL.",
+  "canvas": { "w": 1080, "h": 1350 },
+  "safeArea": { "top": 88, "right": 88, "bottom": 96, "left": 88 },
+  "tokens": {
+    "accent": "#E8C47A",
+    "ink": "#F7F2E9",
+    "inkMuted": "rgba(247,242,233,0.62)",
+    "inkDark": "#110F0C",
+    "paper": "#121013",
+    "paperGlow": "radial-gradient(120% 85% at 50% 8%, rgba(232,196,122,0.16) 0%, rgba(18,16,19,0) 62%)",
+    "overlay": "linear-gradient(180deg, rgba(18,16,19,0.82) 0%, rgba(18,16,19,0.62) 42%, rgba(18,16,19,0.92) 100%)",
+    "rule": "rgba(247,242,233,0.22)",
+    "fontDisplay": "Playfair Display",
+    "fontBody": "Inter",
+    "headlineSize": "122px",
+    "headlineLeading": "0.96",
+    "bodySize": "25px",
+    "bodyLeading": "1.66"
+  },
+  "slots": [
+    "eyebrow",
+    "title",
+    "body",
+    "bullets",
+    "cta",
+    "note",
+    "index",
+    "logo",
+    "handle",
+    "url",
+    "labelA",
+    "labelB"
+  ],
+  "layouts": ["default", "hook", "value", "quote", "split", "cta"],
+  "fonts": [
+    { "family": "Playfair Display", "weights": [400, 500, 700], "styles": ["normal", "italic"] },
+    { "family": "Inter", "weights": [400, 500, 600], "styles": ["normal"] }
+  ],
+  "lineBudget": {
+    "title": { "maxLines": 2 },
+    "body": { "maxLines": 4 }
+  },
+  "motion": {
+    "duration": 5,
+    "fps": 30,
+    "transition": "fade",
+    "slots": {
+      "title": { "in": "rise", "delay": 0.3, "duration": 0.9 },
+      "cta": { "in": "fade", "delay": 1.2, "duration": 0.5 }
+    }
+  }
+}

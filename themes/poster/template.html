@@ -1,0 +1,110 @@
+{{!--
+  poster / template.html
+  An announcement, printed. Everything hangs off one very large headline and a
+  hairline rule; the bottom bar is the only other fixed element.
+--}}
+<div class="slide">
+
+  {{#if (eq layout "split")}}
+    <div class="split">
+      <div class="split-pane">
+        {{#if hasImage}}<div class="split-photo split-photo--a"></div>{{/if}}
+        {{#if labelA}}<p class="split-label" data-slot="labelA">{{labelA}}</p>{{/if}}
+      </div>
+      <div class="split-pane">
+        {{#if hasImageB}}<div class="split-photo split-photo--b"></div>{{/if}}
+        {{#if labelB}}<p class="split-label" data-slot="labelB">{{labelB}}</p>{{/if}}
+      </div>
+    </div>
+    <div class="veil"></div>
+  {{else}}
+    {{#if hasImage}}<div class="photo"></div>{{/if}}
+    <div class="veil"></div>
+  {{/if}}
+
+  <div class="glow" aria-hidden="true"></div>
+
+  {{! faint corner frame }}
+  <div class="frame" aria-hidden="true">
+    <span class="corner corner--tl"></span>
+    <span class="corner corner--tr"></span>
+    <span class="corner corner--bl"></span>
+    <span class="corner corner--br"></span>
+  </div>
+
+  {{! subtle sparkle accents }}
+  <div class="sparkles" aria-hidden="true">
+    <svg class="sparkle sparkle--1" viewBox="0 0 24 24" width="30" height="30" fill="currentColor">
+      <path d="M12 0c.7 6.2 5.1 10.6 12 12-6.9 1.4-11.3 5.8-12 12-.7-6.2-5.1-10.6-12-12C6.9 10.6 11.3 6.2 12 0z"/>
+    </svg>
+    <svg class="sparkle sparkle--2" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+      <path d="M12 0c.7 6.2 5.1 10.6 12 12-6.9 1.4-11.3 5.8-12 12-.7-6.2-5.1-10.6-12-12C6.9 10.6 11.3 6.2 12 0z"/>
+    </svg>
+    <svg class="sparkle sparkle--3" viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+      <path d="M12 0c.7 6.2 5.1 10.6 12 12-6.9 1.4-11.3 5.8-12 12-.7-6.2-5.1-10.6-12-12C6.9 10.6 11.3 6.2 12 0z"/>
+    </svg>
+  </div>
+
+  <header class="mark">
+    {{#if logo}}<img class="logo" src="{{logo}}" alt="">{{/if}}
+    {{#if brandName}}
+      <span class="wordmark" data-slot="handle">{{brandName}}</span>
+    {{else if handle}}
+      <span class="wordmark" data-slot="handle">{{handle}}</span>
+    {{/if}}
+    {{#if numbering}}<span class="index" data-slot="index">{{indexLabel}}</span>{{/if}}
+  </header>
+
+  <div class="sheet">
+    {{#if title}}
+      <h1 class="headline" data-slot="title">
+        {{#if titleParts}}
+          <span class="line">{{titleParts.before}}<em>{{titleParts.mark}}</em>{{titleParts.after}}</span>
+        {{else}}
+          {{#each titleLines}}<span class="line">{{this}}</span>{{/each}}
+        {{/if}}
+      </h1>
+    {{/if}}
+
+    <span class="hr" aria-hidden="true"></span>
+
+    {{#if eyebrow}}<p class="subtitle" data-slot="eyebrow">{{eyebrow}}</p>{{/if}}
+
+    {{#if body}}
+      <div class="body" data-slot="body">
+        {{#each bodyLines}}<p>{{this}}</p>{{/each}}
+      </div>
+    {{/if}}
+
+    {{#if bullets.length}}
+      <ul class="bullets" data-slot="bullets">
+        {{#each bullets}}<li>{{this}}</li>{{/each}}
+      </ul>
+    {{/if}}
+
+    {{#if note}}<p class="note" data-slot="note">{{note}}</p>{{/if}}
+  </div>
+
+  <footer class="bar">
+    {{#if cta}}
+      <p class="cta" data-slot="cta">
+        <span>{{cta}}</span>
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 12h15"/><path d="M13 6l6 6-6 6"/>
+        </svg>
+      </p>
+    {{/if}}
+
+    {{#if url}}
+      <p class="url" data-slot="url">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.4">
+          <circle cx="12" cy="12" r="9"/>
+          <ellipse cx="12" cy="12" rx="4" ry="9"/>
+          <path d="M3.3 9h17.4M3.3 15h17.4"/>
+        </svg>
+        <span>{{url}}</span>
+      </p>
+    {{/if}}
+  </footer>
+
+</div>

@@ -1,0 +1,82 @@
+{
+  "name": "carousel-forge",
+  "version": "0.1.0",
+  "description": "Generate Instagram carousels from a YAML file + your photos and fonts. Theme-driven, renders 1080x1350 PNGs via headless Chromium.",
+  "license": "MIT",
+  "author": "madelacruzs",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "carousel-forge": "dist/cli.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "themes",
+    "narratives",
+    "skills",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/madelacruzs/carousel-forge.git"
+  },
+  "homepage": "https://github.com/madelacruzs/carousel-forge#readme",
+  "bugs": {
+    "url": "https://github.com/madelacruzs/carousel-forge/issues"
+  },
+  "keywords": [
+    "instagram",
+    "carousel",
+    "generator",
+    "cli",
+    "playwright",
+    "social-media",
+    "design",
+    "themes"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "commander": "12.1.0",
+    "handlebars": "4.7.8",
+    "picocolors": "1.1.1",
+    "playwright": "1.49.1",
+    "sharp": "^0.35.4",
+    "yaml": "2.6.1",
+    "zod": "3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.2",
+    "eslint": "9.17.0",
+    "prettier": "3.4.2",
+    "tsup": "8.3.5",
+    "typescript": "5.7.2",
+    "typescript-eslint": "^8.18.1",
+    "vitest": "2.1.8"
+  },
+  "allowScripts": {
+    "esbuild@0.24.2": true,
+    "esbuild@0.21.5": true,
+    "sharp@0.35.4": true
+  }
+}

@@ -1,0 +1,62 @@
+name: story-arc
+description: A short narrative — setup, tension, turn, resolution, lesson — then the ask.
+goal: Use story tension rather than a list to carry the reader to the last slide.
+hooks: [permission, cost-of-inaction, question-direct, before-after]
+
+defaults:
+  copy:
+    title: { maxWords: 8, maxLines: 3 }
+    body: { maxWords: 22, maxLines: 4 }
+
+roles:
+  - id: setup
+    purpose: put the reader in the scene in one line
+    layout: hook
+    tone: >
+      Start in motion. A time, a place, a decision already made.
+      Backstory is what people swipe past.
+    example: "two weeks before the opening, the kitchen wasn't finished"
+    requires: [title]
+    copy:
+      title: { maxWords: 12, maxLines: 3 }
+
+  - id: tension
+    purpose: raise the stakes
+    layout: quote
+    tone: Say what it would have cost. Stakes are what make a story worth finishing.
+    example: 'we had forty covers booked and no gas line'
+    requires: [title]
+
+  - id: turn
+    purpose: the moment it changed
+    layout: value
+    tone: One beat. Do not explain the lesson yet — let the reader get there first.
+    example: 'we served the whole first night off two induction plates'
+    repeat: { min: 1, max: 4 }
+    requires: [title]
+
+  - id: resolution
+    purpose: land the outcome
+    layout: value
+    tone: Plain and unembellished. The restraint is what makes it believable.
+    example: 'nobody noticed. the room was full.'
+    requires: [title]
+
+  - id: lesson
+    purpose: hand the reader the transferable part
+    layout: quote
+    tone: >
+      One sentence they could repeat to someone else tomorrow.
+      This is the line that gets screenshotted.
+    example: "constraints don't ruin the night. hiding them does."
+    requires: [title]
+
+  - id: cta
+    purpose: turn a story into a conversation
+    layout: cta
+    anchor: end
+    tone: Stories earn comments. Ask for one.
+    example: "what's the thing that nearly went wrong on your opening night?"
+    requires: [cta]
+    copy:
+      cta: { maxWords: 12, maxLines: 2 }

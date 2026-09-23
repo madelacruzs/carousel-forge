@@ -1,0 +1,8 @@
+node_modules
+dist
+out
+coverage
+themes/**/*.html
+examples/**/out
+*.png
+*.jpg

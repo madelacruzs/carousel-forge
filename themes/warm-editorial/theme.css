@@ -1,0 +1,500 @@
+/* warm-editorial — all of the design lives here.
+   Core never sets a colour, a size or a position; it only exposes tokens as
+   custom properties and sizes the canvas. */
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings:
+    'kern' 1,
+    'liga' 1;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+}
+
+/* ---- photograph ------------------------------------------------------- */
+
+/* Adaptive scrim.
+   Core measures the photograph on a 4x3 grid and exposes, per cell, its mean
+   luminance (--lum-rNcN) and how busy it is (--lum-vNcN). Which cells matter,
+   and how hard to push back, are design decisions — so they live here.
+
+   Copy in this theme is left-aligned in the lower third, so the cells that
+   matter are rows 2-3, columns 0-1. max() rather than an average, because one
+   bright storefront behind one line is enough to lose the line. Busyness is
+   folded in at a lower weight: thin type over high-frequency detail reads
+   badly even when the mean contrast is nominally fine. */
+.slide {
+  /* Sample every column, not just the left two. The title runs the full width
+     of the safe area, so a bright window or a lit tree in the right-hand third
+     sits behind the end of the headline — and a scrim blind to that column
+     leaves those words stranded on the one bright patch in the frame. */
+  --copy-luma: calc(
+    max(
+        var(--lum-r2c0),
+        var(--lum-r2c1),
+        var(--lum-r2c2),
+        var(--lum-r3c0),
+        var(--lum-r3c1),
+        var(--lum-r3c2)
+      ) +
+      0.8 *
+      max(
+        var(--lum-v2c0),
+        var(--lum-v2c1),
+        var(--lum-v2c2),
+        var(--lum-v3c0),
+        var(--lum-v3c1),
+        var(--lum-v3c2)
+      )
+  );
+  /* Darken until what is behind the copy reaches a target luminance, rather
+     than by a flat amount. Gold type only clears WCAG against a backdrop below
+     roughly 0.14, and a linear ramp is far too gentle in the midrange: a tent
+     or a lit wall at 0.25 needs ~0.45 alpha, not the ~0.19 a straight line
+     gives it. Solving (1 - target/luma) applies exactly as much scrim as the
+     photograph actually calls for, and no more. The max() guards a fully black
+     region, where dividing by zero would invalidate the declaration. */
+  --copy-target: 0.14;
+  /* The gain lets the curve still reach the cap on a blown-out region: without
+     it the most this can ever ask for is 1 - target, which lands short of what
+     a white wall needs. */
+  --auto-bottom: clamp(
+    0,
+    calc((1 - var(--copy-target) / max(var(--copy-luma), 0.001)) * 1.15),
+    0.92
+  );
+  --corner-luma: var(--lum-r0c0);
+}
+
+.photo {
+  position: absolute;
+  inset: 0;
+  background-image: var(--image);
+  background-size: cover;
+  background-position: center;
+}
+
+/* Kept separate from .scrim so the base overlay's opacity does not scale it. */
+.photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    0deg,
+    rgba(0, 0, 0, var(--auto-bottom)) 0%,
+    rgba(0, 0, 0, calc(var(--auto-bottom) * 0.74)) 26%,
+    rgba(0, 0, 0, 0) 60%
+  );
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--overlay);
+  opacity: calc(0.4 + 0.6 * var(--overlay-strength));
+}
+
+/* ---- slide number ------------------------------------------------------ */
+
+/* The top of the frame is deliberately unscrimmed, which strands a small gold
+   number on a white sky. Rather than stamping a dark blob behind it, the
+   number flips to a deep ink as the corner gets brighter — which is what you
+   would do by hand, and leaves the photograph alone. */
+.index {
+  position: absolute;
+  top: var(--safe-top);
+  left: var(--safe-left);
+  z-index: 2;
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  color: color-mix(
+    in srgb,
+    var(--accent),
+    var(--ink-dark) clamp(0%, calc((var(--corner-luma) - 0.16) * 900%), 100%)
+  );
+  opacity: calc(0.78 + 0.22 * clamp(0, calc((var(--corner-luma) - 0.16) * 9), 1));
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- copy -------------------------------------------------------------- */
+
+.content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 500;
+  font-size: var(--title-size);
+  line-height: var(--title-leading);
+  letter-spacing: -0.015em;
+  text-transform: lowercase;
+  color: var(--accent);
+  text-wrap: balance;
+}
+
+.title .line {
+  display: block;
+}
+
+.title mark {
+  background: var(--accent);
+  color: var(--paper);
+  padding: 0 0.12em 0.04em;
+  border-radius: 2px;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 82%;
+}
+
+.body p {
+  margin: 0;
+  font-size: var(--body-size);
+  line-height: var(--body-leading);
+  color: var(--ink-muted);
+}
+
+.bullets {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 88%;
+}
+
+.bullets li {
+  position: relative;
+  padding-left: 38px;
+  font-size: 30px;
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+.bullets li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 20px;
+  height: 2px;
+  background: var(--accent);
+}
+
+.inline-cta {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+
+.note {
+  margin: 0;
+  font-size: 21px;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+}
+
+/* ---- footer ------------------------------------------------------------ */
+
+.footer {
+  position: relative;
+  z-index: 2;
+  margin-top: 44px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-height: 1px;
+}
+
+.logo {
+  height: 40px;
+  width: auto;
+  opacity: 0.92;
+}
+
+.handle {
+  font-size: 22px;
+  letter-spacing: 0.14em;
+  color: var(--ink-muted);
+}
+
+/* ---- layout: hook ------------------------------------------------------ */
+
+.layout-hook .title {
+  font-size: calc(var(--title-size) * 1.24);
+  line-height: 0.92;
+  color: var(--accent);
+}
+
+.layout-hook .scrim {
+  opacity: calc(0.55 + 0.45 * var(--overlay-strength));
+}
+
+.layout-hook .body p {
+  font-size: calc(var(--body-size) * 1.08);
+  color: var(--ink);
+}
+
+/* ---- layout: value ----------------------------------------------------- */
+
+.layout-value .title {
+  font-size: calc(var(--title-size) * 0.86);
+  color: var(--accent);
+}
+
+/* ---- layout: quote ----------------------------------------------------- */
+
+.layout-quote .slide {
+  justify-content: center;
+}
+
+.layout-quote .content {
+  gap: 32px;
+}
+
+.layout-quote .title {
+  font-family: var(--font-display), Georgia, serif;
+  font-style: italic;
+  font-size: calc(var(--title-size) * 0.94);
+  line-height: 1.06;
+  color: var(--ink);
+  text-transform: none;
+}
+
+.layout-quote .content::before {
+  content: '\201C';
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 150px;
+  line-height: 0.6;
+  color: var(--accent);
+  opacity: 0.55;
+}
+
+.layout-quote .footer {
+  position: absolute;
+  left: var(--safe-left);
+  bottom: var(--safe-bottom);
+  margin-top: 0;
+}
+
+.layout-quote .scrim {
+  opacity: calc(0.55 + 0.45 * var(--overlay-strength));
+}
+
+/* The quote sits at the optical centre, so the cells that matter are the
+   middle rows rather than the bottom ones. */
+.layout-quote .slide,
+.layout-quote.slide {
+  --copy-luma: calc(
+    max(var(--lum-r1c0), var(--lum-r1c1), var(--lum-r2c0), var(--lum-r2c1)) + 0.8 *
+      max(var(--lum-v1c0), var(--lum-v1c1), var(--lum-v2c0), var(--lum-v2c1))
+  );
+}
+
+.layout-quote .photo::after {
+  background: linear-gradient(
+    0deg,
+    rgba(0, 0, 0, calc(var(--auto-bottom) * 0.6)) 0%,
+    rgba(0, 0, 0, var(--auto-bottom)) 26%,
+    rgba(0, 0, 0, var(--auto-bottom)) 68%,
+    rgba(0, 0, 0, calc(var(--auto-bottom) * 0.35)) 100%
+  );
+}
+
+/* ---- layout: split ----------------------------------------------------- */
+
+.split {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+}
+
+.split-pane {
+  position: relative;
+  overflow: hidden;
+}
+
+.split-pane--b {
+  border-top: 1px solid var(--rule);
+}
+
+.split-photo {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+
+.split-photo--a {
+  background-image: var(--image);
+}
+
+.split-photo--b {
+  background-image: var(--image-b);
+  filter: saturate(0.85);
+}
+
+.split-label {
+  position: absolute;
+  left: var(--safe-left);
+  top: 34px;
+  margin: 0;
+  z-index: 3;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: rgba(0, 0, 0, 0.5);
+  padding: 10px 16px;
+  backdrop-filter: blur(2px);
+}
+
+/* Pane A's label shares the top band with the slide index, so it starts
+   clear of it instead of stacking on top. */
+.split-pane--a .split-label {
+  top: var(--safe-top);
+  left: calc(var(--safe-left) + 76px);
+}
+
+/* The copy sits over the lower pane, which is imageB — so the cells that
+   matter are the bottom rows of the *second* image's own grid. */
+.layout-split .slide {
+  --copy-luma: calc(
+    max(var(--lum-b-r2c0), var(--lum-b-r2c1), var(--lum-b-r3c0), var(--lum-b-r3c1)) + 0.8 *
+      max(var(--lum-b-v2c0), var(--lum-b-v2c1), var(--lum-b-v3c0), var(--lum-b-v3c1))
+  );
+  --label-luma: max(var(--lum-r0c0), var(--lum-b-r0c0));
+}
+
+.scrim--split {
+  position: absolute;
+  inset: 0;
+  /* The adaptive stops below are already absolute alphas, so this must not be
+     scaled a second time by the base `.scrim` opacity. */
+  opacity: 1;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, calc(0.35 + 0.3 * var(--auto-bottom))) 0%,
+    rgba(0, 0, 0, 0) 20%,
+    rgba(0, 0, 0, 0) 44%,
+    rgba(0, 0, 0, calc(0.2 + 0.35 * var(--auto-bottom))) 64%,
+    rgba(0, 0, 0, max(0.72, var(--auto-bottom))) 76%,
+    rgba(0, 0, 0, max(0.88, var(--auto-bottom))) 100%
+  );
+}
+
+.layout-split .title {
+  font-size: calc(var(--title-size) * 0.84);
+  color: var(--ink);
+}
+
+.layout-split .content {
+  gap: 18px;
+}
+
+/* ---- layout: cta ------------------------------------------------------- */
+
+.layout-cta body,
+body.layout-cta {
+  background: var(--paper);
+}
+
+.layout-cta .slide {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.cta-stack {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 34px;
+  max-width: 78%;
+}
+
+.cta-logo {
+  height: 76px;
+  width: auto;
+  opacity: 0.95;
+}
+
+.cta-title {
+  margin: 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 500;
+  font-size: calc(var(--title-size) * 0.8);
+  line-height: 1.04;
+  letter-spacing: -0.01em;
+  text-transform: lowercase;
+  color: var(--accent);
+  text-wrap: balance;
+}
+
+.cta-title .line {
+  display: block;
+}
+
+.cta-action {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  padding: 18px 34px;
+}
+
+.cta-note {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+}
+
+.cta-handle {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(-1 * var(--safe-bottom) + 24px);
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: 0.18em;
+  color: var(--ink-muted);
+}

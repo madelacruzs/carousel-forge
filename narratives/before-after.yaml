@@ -1,0 +1,57 @@
+name: before-after
+description: Show the gap, then close it. Built around a visual contrast on the first slide.
+goal: Earn attention with a transformation, then make the transformation reproducible.
+hooks: [perception-vs-reality, before-after, mistake]
+
+defaults:
+  copy:
+    title: { maxWords: 7, maxLines: 2 }
+    body: { maxWords: 18, maxLines: 3 }
+
+roles:
+  - id: hook
+    purpose: put the two states side by side so the gap is obvious at thumbnail size
+    layout: split
+    tone: >
+      Let the images do the arguing. Two short labels, nothing clever.
+      If the contrast needs a sentence to explain it, the images are wrong.
+    example: 'what they see vs. what it actually is'
+    requires: [title]
+    copy:
+      title: { maxWords: 9, maxLines: 2 }
+      labelA: { maxWords: 4, maxLines: 1 }
+      labelB: { maxWords: 4, maxLines: 1 }
+
+  - id: before
+    purpose: be honest about the starting point
+    layout: value
+    tone: Specific and unflattering. Vagueness here reads as a humblebrag.
+    example: 'three clients, none of them paying on time'
+    requires: [title]
+
+  - id: turning-point
+    purpose: name the single thing that changed
+    layout: quote
+    tone: >
+      One decision, one constraint, one habit. If you list three things,
+      the reader believes none of them.
+    example: 'i stopped taking work without a deposit'
+    requires: [title]
+
+  - id: after
+    purpose: show the result, with a number if you have one
+    layout: value
+    tone: Concrete outcome. A defensible number beats an adjective every time.
+    example: 'same hours. half the invoices chasing.'
+    repeat: { min: 1, max: 4 }
+    requires: [title]
+
+  - id: cta
+    purpose: invite the reader who recognises themselves in the before
+    layout: cta
+    anchor: end
+    tone: Speak to the person still standing in the "before".
+    example: "comment DEPOSIT and i'll send you the template"
+    requires: [cta]
+    copy:
+      cta: { maxWords: 8, maxLines: 1 }

@@ -1,0 +1,73 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: lint, typecheck, test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      # Pinned by the playwright version in package.json — determinism depends on it.
+      - run: npx playwright install --with-deps chromium
+
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm test
+
+      - name: Smoke build
+        run: |
+          mkdir -p /tmp/smoke
+          cd /tmp/smoke
+          node "$GITHUB_WORKSPACE/dist/cli.js" init
+          node "$GITHUB_WORKSPACE/dist/cli.js" build
+          node "$GITHUB_WORKSPACE/dist/cli.js" doctor
+          test -f out/slide-01.png
+          test -f out/contact-sheet.png
+          test -f out/caption.md
+
+      - name: Smoke build every theme
+        run: |
+          cd /tmp/smoke
+          for theme in warm-editorial studio-minimal poster; do
+            echo "::group::$theme"
+            node "$GITHUB_WORKSPACE/dist/cli.js" init --theme "$theme" --force
+            node "$GITHUB_WORKSPACE/dist/cli.js" build --out "out-$theme"
+            test -f "out-$theme/contact-sheet.png"
+            echo "::endgroup::"
+          done
+
+      - name: Upload smoke build
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-build
+          path: /tmp/smoke/out*/
+          if-no-files-found: ignore
+          retention-days: 7

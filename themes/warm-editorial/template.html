@@ -1,0 +1,87 @@
+{{!--
+  warm-editorial / template.html
+
+  Slots available: eyebrow, title (+ titleLines, titleParts, highlight), body
+  (+ bodyLines), bullets, cta, note, labelA, labelB, index/indexLabel, logo,
+  handle, image, imageB.
+
+  Every text element carries data-slot="…" so `carousel-forge doctor` can
+  measure it in the rendered page. Keep those attributes on anything the reader
+  is meant to read.
+--}}
+<div class="slide">
+
+  {{#if (eq layout "split")}}
+    <div class="split">
+      <div class="split-pane split-pane--a">
+        {{#if hasImage}}<div class="split-photo split-photo--a"></div>{{/if}}
+        {{#if labelA}}<p class="split-label" data-slot="labelA">{{labelA}}</p>{{/if}}
+      </div>
+      <div class="split-pane split-pane--b">
+        {{#if hasImageB}}<div class="split-photo split-photo--b"></div>{{/if}}
+        {{#if labelB}}<p class="split-label" data-slot="labelB">{{labelB}}</p>{{/if}}
+      </div>
+    </div>
+    <div class="scrim scrim--split"></div>
+  {{else if (ne layout "cta")}}
+    {{#if hasImage}}<div class="photo"></div>{{/if}}
+    <div class="scrim"></div>
+  {{/if}}
+
+  {{#if (and numbering (ne layout "cta"))}}
+    <div class="index" data-slot="index">{{indexLabel}}</div>
+  {{/if}}
+
+  {{#if (eq layout "cta")}}
+
+    <div class="cta-stack">
+      {{#if logo}}<img class="cta-logo" src="{{logo}}" alt="">{{/if}}
+      {{#if title}}
+        <h1 class="cta-title" data-slot="title">
+          {{#each titleLines}}<span class="line">{{this}}</span>{{/each}}
+        </h1>
+      {{/if}}
+      {{#if cta}}<p class="cta-action" data-slot="cta">{{cta}}</p>{{/if}}
+      {{#if note}}<p class="cta-note" data-slot="note">{{note}}</p>{{/if}}
+      {{#if handle}}<p class="cta-handle" data-slot="handle">{{handle}}</p>{{/if}}
+    </div>
+
+  {{else}}
+
+    <div class="content">
+      {{#if eyebrow}}<p class="eyebrow" data-slot="eyebrow">{{eyebrow}}</p>{{/if}}
+
+      {{#if title}}
+        <h1 class="title" data-slot="title">
+          {{#if titleParts}}
+            <span class="line">{{titleParts.before}}<mark>{{titleParts.mark}}</mark>{{titleParts.after}}</span>
+          {{else}}
+            {{#each titleLines}}<span class="line">{{this}}</span>{{/each}}
+          {{/if}}
+        </h1>
+      {{/if}}
+
+      {{#if bullets.length}}
+        <ul class="bullets" data-slot="bullets">
+          {{#each bullets}}<li>{{this}}</li>{{/each}}
+        </ul>
+      {{/if}}
+
+      {{#if body}}
+        <div class="body" data-slot="body">
+          {{#each bodyLines}}<p>{{this}}</p>{{/each}}
+        </div>
+      {{/if}}
+
+      {{#if cta}}<p class="inline-cta" data-slot="cta">{{cta}}</p>{{/if}}
+      {{#if note}}<p class="note" data-slot="note">{{note}}</p>{{/if}}
+    </div>
+
+    <div class="footer">
+      {{#if logo}}<img class="logo" src="{{logo}}" alt="">{{/if}}
+      {{#if handle}}<span class="handle" data-slot="handle">{{handle}}</span>{{/if}}
+    </div>
+
+  {{/if}}
+
+</div>
