@@ -9,6 +9,15 @@
 #
 # `example` shows what a properly specific fill looks like. Copy the specificity,
 # not the words.
+#
+# The file is grouped by language: English formulas first, then Spanish ones with
+# an `-es` suffix. A formula only detects headlines written in its own language,
+# because `doctor` matches the literal words around each {slot} — an English
+# pattern will never recognise a Spanish hook. Write the carousel in the language
+# the audience reads, and pick the formula from that language's group.
+#
+# The pairs are siblings, not translations. Do not offer `mistake` and `mistake-es`
+# as two of your three options; that is one idea presented twice.
 
 - id: wish-i-knew
   pattern: '{n} things I wish I knew before {topic}'
@@ -17,7 +26,7 @@
   notes: Works because it is a confession, not a lecture. Use a real regret.
 
 - id: perception-vs-reality
-  pattern: 'what they see vs. what it actually is'
+  pattern: 'what {they_see} vs. what {it_actually_is}'
   example: 'what the listing shows vs. what we found behind the drywall'
   works_for: [behind-the-scenes, personal, process]
   visual: split
@@ -25,12 +34,12 @@
 
 - id: mistake
   pattern: "you're doing {thing} wrong. here's why."
-  example: "you're lighting your kitchen wrong. here's why."
+  example: "you're doing your lighting wrong. here's why."
   works_for: [educational, contrarian, technical]
   notes: Accusatory on purpose. Only use it if slide 2 immediately lets the reader off the hook.
 
 - id: contrarian
-  pattern: 'stop {common_advice}. do {this} instead.'
+  pattern: 'stop {common_advice}. {this} instead.'
   example: 'stop painting everything white. pick one warm neutral instead.'
   works_for: [contrarian, educational]
   notes: Requires that you actually disagree with the common advice. Fake contrarianism reads as bait.
@@ -43,7 +52,7 @@
 
 - id: cost-of-inaction
   pattern: "{thing} is costing you {cost} and you can't see it"
-  example: 'your ceiling height is costing you every photo you take'
+  example: "your ceiling height is costing you every photo you take and you can't see it"
   works_for: [educational, business, persuasive]
   notes: The cost has to be one they already half-suspect. If it needs explaining, it is not a hook.
 
@@ -55,7 +64,7 @@
 
 - id: question-direct
   pattern: 'why is {common_thing} so {unexpected_adjective}?'
-  example: 'why is every rental kitchen the same shade of beige?'
+  example: 'why is every rental kitchen so beige?'
   works_for: [educational, curiosity, technical]
   notes: Only works if the reader has genuinely wondered. Rhetorical questions they have not asked get scrolled.
 
@@ -71,3 +80,111 @@
   example: "you're allowed to leave a room unfinished for a year"
   works_for: [personal, mindset, community]
   notes: Names a rule the audience has internalised and quietly resents. Get the rule wrong and it lands as nothing.
+
+- id: time-stamped
+  pattern: '{duration} after {event}, here is what i know'
+  example: 'eight years after landing, here is what i know'
+  works_for: [personal, retrospective, migration]
+  notes: >-
+    The exact duration is the hook. "eight years" earns a read that "a few years"
+    does not, because only someone who lived it counts that precisely. Never round
+    the number to make the line scan better — you are trading away the credibility
+    that made the hook work.
+
+# --- Fórmulas en español ----------------------------------------------------
+#
+# Latin American register: tuteo, never "vosotros". Lowercase, because these are
+# spoken lines, not headlines. Accents and ¿ ¡ are part of the word — the cached
+# font subsets cover á é í ó ú ñ ¿ ¡, so there is never a reason to drop them.
+
+- id: ojala-hubiera-sabido-es
+  pattern: '{n} cosas que ojalá me hubieran dicho antes de {topic}'
+  example: 'ocho cosas que ojalá me hubieran dicho antes de migrar'
+  works_for: [educational, personal, retrospective, migration]
+  notes: >-
+    Confesión, no clase. Funciona porque admite que te equivocaste. Si la lista
+    resulta ser consejo genérico que cualquiera daría, la fórmula no te salva.
+
+- id: lo-que-ves-vs-lo-que-es-es
+  pattern: 'lo que {they_see} vs. lo que {it_is}'
+  example: 'lo que ves vs. lo que es'
+  works_for: [behind-the-scenes, personal, process, migration]
+  visual: split
+  notes: >-
+    Necesita layout split — dos fotos, dos etiquetas. La foto bonita va primero y
+    la honesta después. Si la segunda no incomoda un poco, no hay contraste.
+
+- id: error-es
+  pattern: 'estás {thing} mal. y no es tu culpa.'
+  example: 'estás buscando trabajo mal. y no es tu culpa.'
+  works_for: [educational, contrarian, technical, migration]
+  notes: >-
+    Acusa y absuelve en la misma línea. La segunda mitad no es decoración: sin
+    ella el lector se defiende en vez de seguir leyendo. El slide 2 tiene que
+    explicar de quién sí es la culpa.
+
+- id: deja-de-es
+  pattern: 'deja de {common_advice}. {this} en su lugar.'
+  example: 'deja de aplicar a cien vacantes. escríbele a cinco personas en su lugar.'
+  works_for: [contrarian, educational]
+  notes: >-
+    Solo si de verdad no estás de acuerdo con el consejo común. El contrarianismo
+    fingido se huele y te cuesta la audiencia que ya te creía.
+
+- id: dato-duro-es
+  pattern: '{metric} en {timeframe}. sin {obvious_shortcut}.'
+  example: 'tres trabajos en ocho años. sin una sola referencia canadiense al empezar.'
+  works_for: [results, case-study, business, migration]
+  notes: >-
+    Solo con un número que puedas defender si te lo discuten en comentarios.
+    Nombrar el atajo que no tomaste es lo que lo hace creíble.
+
+- id: te-esta-costando-es
+  pattern: '{thing} te está costando {cost} y no lo ves'
+  example: 'traducir tu cv literal te está costando entrevistas y no lo ves'
+  works_for: [educational, persuasive, migration]
+  notes: >-
+    El costo tiene que ser uno que el lector ya medio sospecha. Si hay que
+    explicárselo, no es hook, es slide 3.
+
+- id: nadie-te-cuenta-es
+  pattern: '{n} {things} que nadie te cuenta de {topic}'
+  example: 'cinco costos que nadie te cuenta de tu primer año en canadá'
+  works_for: [educational, personal, industry, migration]
+  notes: >-
+    "nadie te cuenta" promete acceso. No lo sigas con información que sale en
+    la primera página de Google, porque el lector la reconoce al instante.
+
+- id: por-que-es-tan-es
+  pattern: '¿por qué {common_thing} es tan {unexpected_adjective}?'
+  example: '¿por qué hacer amigos aquí es tan lento?'
+  works_for: [educational, curiosity, migration]
+  notes: >-
+    Solo sirve si el lector ya se lo preguntó solo. Abre con ¿ — sin el signo de
+    apertura la línea se lee como afirmación hasta el final.
+
+- id: antes-despues-es
+  pattern: '{before_state} → {after_state}. esto es lo que cambió.'
+  example: 'sin una sola referencia → equipo propio. esto es lo que cambió.'
+  works_for: [transformation, case-study, personal, migration]
+  visual: split
+  notes: >-
+    La distancia entre los dos estados es todo el hook. Si es corta, usa otra
+    fórmula en vez de exagerar el punto de partida.
+
+- id: tienes-permiso-es
+  pattern: 'tienes permiso de {thing_they_think_is_not_allowed}'
+  example: 'tienes permiso de extrañar y de quedarte al mismo tiempo'
+  works_for: [personal, mindset, community, migration]
+  notes: >-
+    Nombra una regla que la audiencia se tragó y resiente en silencio. Es la
+    fórmula más cálida de la lista y la que peor tolera el cinismo.
+
+- id: anos-despues-es
+  pattern: '{duration} después de {event}, esto es lo que sé'
+  example: 'ocho años después de aterrizar, esto es lo que sé'
+  works_for: [personal, retrospective, migration]
+  notes: >-
+    La cifra exacta es el hook. "ocho años" se gana una lectura que "unos años"
+    no, porque solo quien lo vivió lleva la cuenta así. Nunca redondees el número
+    para que la línea suene mejor: estás cambiando credibilidad por ritmo.

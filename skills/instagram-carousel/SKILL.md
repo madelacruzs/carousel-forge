@@ -76,8 +76,15 @@ Rules for this step:
   their actual topic. "3 tips for success" is a filled-in pattern that is still
   a bad hook.
 - **Vary the formulas.** Three flavours of list hook is one option, not three.
-- **Flag visual requirements.** `perception-vs-reality` and `before-after`
-  declare `visual: split` and need two photos and two labels.
+- **Pick from the formula group that matches the language you are writing in.**
+  `hooks.yaml` has English formulas and Spanish ones with an `-es` suffix. A
+  formula only detects headlines in its own language, so filling an English
+  pattern with Spanish words produces a hook `doctor` cannot name and may report
+  as weak. The pairs are siblings, not translations: `mistake` and `error-es`
+  together are one option, not two.
+- **Flag visual requirements.** `perception-vs-reality`, `before-after`,
+  `lo-que-ves-vs-lo-que-es-es` and `antes-despues-es` declare `visual: split`
+  and need two photos and two labels.
 - **Say nothing else.** No draft slides, no caption, no "meanwhile here's the
   rest". The user picks, then you write.
 
@@ -147,14 +154,65 @@ time. These are not style preferences; copy over budget stops working.
 Each narrative role declares its own budget; `doctor` reports the exact
 numbers. Treat an over-budget warning as "cut", never as "shrink the font".
 
+Budgets count words and lines, not width. They were tuned on English, where the
+average word is short. A language with longer words fills the same 7-word title
+with noticeably more glyphs, and nothing in `doctor` measures that — it will pass
+a title that visibly crowds the frame. When a title is at budget and carries two
+or more long words, go look at the render before moving on.
+
+### Writing in Spanish
+
+Write in the language the audience reads. If the user writes to you in Spanish,
+the carousel is in Spanish — do not draft in English and translate, because a
+translated hook keeps English rhythm and lands flat.
+
+Las reglas de registro, en español porque son sobre el español:
+
+- **Tuteo latinoamericano.** Nada de "usted", que pone distancia justo donde
+  quieres cercanía, y nada de España: ni "vosotros", ni "vale", ni "coger", ni
+  "móvil", ni "ordenador".
+- **Minúsculas.** La minúscula se lee como voz; la mayúscula inicial se lee como
+  marca. Es una decisión de tono, no de estilo.
+- **Los acentos y los signos de apertura son parte de la palabra.** Los subsets
+  de fuente que se cachean cubren á é í ó ú ñ ¿ ¡, así que nunca hay motivo
+  técnico para escribir "anos" en vez de "años" — y ese error concreto cambia la
+  frase entera. Una pregunta sin "¿" se lee como afirmación hasta el final.
+- **Evita el español neutro de traducción.** "descubre", "potencia tu",
+  "transforma tu vida", "no te lo pierdas", "increíble": son las mismas frases
+  vacías que en inglés, con acento.
+- **Concreto y local.** "noviembre en vancouver" dice más que "el clima". El
+  detalle que solo tiene quien lo vivió es lo que te separa del contenido
+  genérico de migración.
+- **Cifra o letra, a propósito.** "ocho años" suena a voz hablada y funciona en
+  un body; "8 años" es lo que el ojo frena en el feed y lo único que `doctor`
+  cuenta como señal "opens with a number". En el slide 1, usa el dígito salvo que
+  la cifra sea parte del ritmo de la línea.
+
+One mechanical caveat, because it will mislead you otherwise: the
+`copy/no-new-information` check strips English stop words only. Spanish function
+words — "el", "la", "de", "que", "en", "un", "no", "se", "lo" — count as content,
+so consecutive Spanish slides score as far more similar than they are. Expect
+that warning to fire on slides that are genuinely different. Judge redundancy
+from the contact sheet, and never delete a good slide because a similarity number
+fired.
+
 ### Copy the user wrote is theirs
 
 When the user supplies exact copy, it goes into `carousel.yaml` **verbatim** —
 every clause, in their wording, including the ones you would have cut.
 
 If a line is over budget, overflows the safe area, or breaks badly, do not
-quietly fix it. Say which slide, quote the line, explain what it does, and
-propose a shorter alternative. The user accepts or rejects it.
+quietly fix it. Propose the change as a diff the user can reject at a glance —
+name the slide and the slot, quote both versions, say what the change costs:
+
+```
+slide 3 · title — 11 words, budget is 7
+  - el trabajo cuesta y la gente cuesta mucho más de lo que crees
+  + el trabajo cuesta. la gente cuesta más.
+  loses "de lo que crees", which is the part addressed to the reader.
+```
+
+Then stop and wait. Do not apply it and mention it afterwards.
 
 Silently dropping a clause is the worst failure this skill has, because the
 result still looks finished. Nothing downstream will catch it: the CLI has no
@@ -171,6 +229,25 @@ body: |-
   el ruido de la calle.
   que alguien pase sin avisar.
 ```
+
+**A number is a claim, not a rhythm.** "eight years" is not "a few years" and is
+certainly not "two years". Durations, counts, prices and distances come from the
+user's life; rounding one to make a line scan better trades away the exact thing
+that made it credible. The readers who lived the same story are the ones who
+notice first. If a number genuinely does not fit, say so and ask — never pick a
+rounder one yourself.
+
+**Never soften a hard truth into something more sellable.** If the user tells you
+the job market where they live is brutal, no line in that carousel may imply
+otherwise. Optimism the user did not write reads as a lie to the audience that
+trusted them, and it is the kind of edit that costs a creator their credibility
+permanently. The same goes in reverse: do not sharpen a measured statement into
+outrage because it would perform better.
+
+**Before you call it done**, read the user's original message next to
+`carousel.yaml`, clause by clause. Every clause they wrote is either on a slide
+or in a change they explicitly approved. If you cannot account for one, you cut
+it — say so now, not never.
 
 ### Writing that holds attention
 
@@ -290,7 +367,8 @@ every run. Read that for the current structure; never hand-edit it.
 
 ```bash
 carousel-forge init [--theme <name>] [--narrative <name>]   # scaffold a project
-carousel-forge build [--watch] [--out <dir>]                # render to out/carousel-forge preview                                      # contact sheet + local server
+carousel-forge build [--watch] [--out <dir>]                # render to out/
+carousel-forge preview                                      # contact sheet + local server
 carousel-forge doctor                                       # lint layout and copy
 carousel-forge themes list
 carousel-forge themes new <name> [--from <existing>]
