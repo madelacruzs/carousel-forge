@@ -75,6 +75,21 @@ describe('contentTokens', () => {
     expect(contentTokens('año')).not.toEqual(contentTokens('ano'));
   });
 
+  // The YAML Miguel writes on Windows arrives composed, but creator-studio reads
+  // copy back out of a database through its bridge, and macOS produces decomposed
+  // text on several paths. Composed input passes even when the fold is broken, so
+  // the decomposed form is the case worth pinning down.
+  it('keeps ñ when the input is decomposed rather than composed', () => {
+    const decomposed = 'año'.normalize('NFD');
+    expect(decomposed).not.toBe('año');
+    expect(contentTokens(decomposed)).toEqual(contentTokens('año'));
+    expect(contentTokens(decomposed)).not.toEqual(contentTokens('ano'));
+  });
+
+  it('folds ordinary accents the same way whichever normal form arrives', () => {
+    expect(contentTokens('más país'.normalize('NFD'))).toEqual(contentTokens('mas pais'));
+  });
+
   it('leaves ASCII English copy exactly as the English-only list did', () => {
     const english = 'the rent is not the thing that drains your savings here';
     expect(contentTokens(english)).toEqual(englishOnlyContentTokens(english));

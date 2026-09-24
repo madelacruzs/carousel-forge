@@ -195,10 +195,14 @@ const N_TILDE = '\u0001';
 /**
  * Strip diacritics so "mas"/"más" and "pais"/"país" compare as one token. "ñ" is
  * preserved, because it is a distinct letter and folding it would conflate
- * "año" with "ano". ASCII input is unchanged, so the English path is untouched.
+ * "año" with "ano". The leading NFC pass matters: in decomposed input "ñ" is
+ * already n + U+0303, so the sentinel would never match and the tilde would be
+ * stripped with the rest. ASCII input is unchanged, so the English path is
+ * untouched.
  */
 function foldAccents(token: string): string {
   return token
+    .normalize('NFC')
     .replace(/ñ/g, N_TILDE)
     .normalize('NFD')
     .replace(COMBINING_MARKS, '')
