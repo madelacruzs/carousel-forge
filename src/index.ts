@@ -51,6 +51,8 @@ export type { PreparedImage, LuminanceBands } from './image/prepare.js';
 export { buildFrames, padIndex, splitTitle } from './render/frame.js';
 export type { Frame, TemplateContext } from './render/frame.js';
 export { renderFrameHtml, compileTemplate, clearTemplateCache } from './render/html.js';
+export { inlineFrameAssets, CUSTOM_PROPERTY_CEILING } from './render/inline.js';
+export type { InlineFrameAssetsOptions } from './render/inline.js';
 export { Renderer } from './render/renderer.js';
 export type { RenderedFrame, SlotProbe } from './render/renderer.js';
 export { renderContactSheet } from './render/contactSheet.js';
