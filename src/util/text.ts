@@ -41,7 +41,7 @@ export function jaccard(a: Set<string>, b: Set<string>): number {
   return shared / (a.size + b.size - shared);
 }
 
-const STOP_WORDS = new Set([
+const STOP_WORDS_EN = new Set([
   'a',
   'an',
   'and',
@@ -71,12 +71,150 @@ const STOP_WORDS = new Set([
   'your',
 ]);
 
-/** Content-bearing tokens, i.e. tokens minus very common English stop words. */
+/**
+ * Spanish function words. Written without accents because `contentTokens` folds
+ * accents before the lookup, so "mas" here also covers "más".
+ *
+ * A few entries overlap with English and are deliberate:
+ * - "no", "me", "a" are function words in both languages, so stripping them costs
+ *   nothing on the English side.
+ * - "son" and "he" are function words in Spanish ("they are", "I have") but can be
+ *   nouns or pronouns in English. They are still stripped: this set only feeds the
+ *   similarity comparison in `copy/no-new-information`, never a word budget, so the
+ *   worst case is that two English slides look slightly less similar than they are.
+ *   A false negative there is much cheaper than the false positive it fixes.
+ * Lexical verbs ("ser", "estar", "hacer", "tener") are left out on purpose — they
+ * carry meaning and dropping them would hide real repetition.
+ */
+const STOP_WORDS_ES = new Set([
+  'al',
+  'algo',
+  'aunque',
+  'cada',
+  'como',
+  'con',
+  'cual',
+  'cuando',
+  'cuanto',
+  'de',
+  'del',
+  'desde',
+  'donde',
+  'e',
+  'el',
+  'ella',
+  'ellas',
+  'ellos',
+  'en',
+  'entre',
+  'era',
+  'eran',
+  'eres',
+  'es',
+  'esa',
+  'esas',
+  'ese',
+  'eso',
+  'esos',
+  'esta',
+  'estas',
+  'este',
+  'esto',
+  'estos',
+  'fue',
+  'fueron',
+  'ha',
+  'han',
+  'hasta',
+  'hay',
+  'he',
+  'la',
+  'las',
+  'le',
+  'les',
+  'lo',
+  'los',
+  'mas',
+  'me',
+  'mi',
+  'mis',
+  'mucho',
+  'muy',
+  'ni',
+  'no',
+  'nos',
+  'nosotros',
+  'o',
+  'otra',
+  'otro',
+  'para',
+  'pero',
+  'poco',
+  'por',
+  'porque',
+  'que',
+  'quien',
+  'se',
+  'segun',
+  'ser',
+  'si',
+  'sin',
+  'sobre',
+  'solo',
+  'son',
+  'su',
+  'sus',
+  'tambien',
+  'tan',
+  'te',
+  'toda',
+  'todas',
+  'todo',
+  'todos',
+  'tu',
+  'tus',
+  'un',
+  'una',
+  'unas',
+  'unos',
+  'y',
+  'ya',
+  'yo',
+]);
+
+/**
+ * English and Spanish are merged into one set rather than picked per carousel.
+ * Same stance as `CTA_PATTERNS` in `doctor/hooks.ts`: dumb literal lists, not
+ * language detection. To support another language, add its function words here.
+ */
+const STOP_WORDS = new Set([...STOP_WORDS_EN, ...STOP_WORDS_ES]);
+
+const COMBINING_MARKS = /[\u0300-\u036f]/g;
+const N_TILDE = '\u0001';
+
+/**
+ * Strip diacritics so "mas"/"más" and "pais"/"país" compare as one token. "ñ" is
+ * preserved, because it is a distinct letter and folding it would conflate
+ * "año" with "ano". ASCII input is unchanged, so the English path is untouched.
+ */
+function foldAccents(token: string): string {
+  return token
+    .replace(/ñ/g, N_TILDE)
+    .normalize('NFD')
+    .replace(COMBINING_MARKS, '')
+    .replace(new RegExp(N_TILDE, 'g'), 'ñ');
+}
+
+/**
+ * Content-bearing tokens: tokens minus very common English and Spanish function
+ * words, accent-folded. Used only for similarity comparisons — never for counting
+ * words against a budget, which is what `words()`/`wordCount()` are for.
+ */
 export function contentTokens(text: string | undefined | null): Set<string> {
   const set = new Set<string>();
   for (const word of words(text)) {
-    const lower = word.toLowerCase();
-    if (!STOP_WORDS.has(lower)) set.add(lower);
+    const folded = foldAccents(word.toLowerCase());
+    if (!STOP_WORDS.has(folded)) set.add(folded);
   }
   return set;
 }

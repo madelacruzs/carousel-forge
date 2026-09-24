@@ -188,13 +188,16 @@ Las reglas de registro, en español porque son sobre el español:
   cuenta como señal "opens with a number". En el slide 1, usa el dígito salvo que
   la cifra sea parte del ritmo de la línea.
 
-One mechanical caveat, because it will mislead you otherwise: the
-`copy/no-new-information` check strips English stop words only. Spanish function
-words — "el", "la", "de", "que", "en", "un", "no", "se", "lo" — count as content,
-so consecutive Spanish slides score as far more similar than they are. Expect
-that warning to fire on slides that are genuinely different. Judge redundancy
-from the contact sheet, and never delete a good slide because a similarity number
-fired.
+One mechanical note, so you read the check correctly: `copy/no-new-information`
+strips Spanish function words as well as English ones — "el", "la", "de", "que",
+"en", "un", "no", "se", "lo" — and folds accents, so "más" and "mas" count as the
+same word. Consecutive Spanish slides are compared on their content words alone,
+and the warning no longer fires just because two slides share the same
+scaffolding. When it does fire on Spanish copy, it is worth reading. It is still
+only a word-overlap number: it cannot tell a deliberate parallel frame ("lo que
+no te dicen de…" on four slides) from a slide that says nothing new. Judge
+redundancy from the contact sheet, and never delete a good slide because a
+similarity number fired.
 
 ### Copy the user wrote is theirs
 
