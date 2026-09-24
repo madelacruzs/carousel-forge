@@ -510,6 +510,27 @@ const project = await loadProject({ configFile: 'carousel.yaml' });
 const report = await doctor({ project });
 ```
 
+### Showing a frame outside `build`
+
+`build` serves photographs over an in-memory origin, so the HTML it renders
+only works inside the render pipeline. To display a frame anywhere else — a
+live preview in an editor, a saved `.html` — inline the assets first:
+
+```ts
+import { buildFrames, inlineFrameAssets, renderFrameHtml } from 'carousel-forge';
+
+const html = await inlineFrameAssets(renderFrameHtml({ frame, theme, fontCss }));
+```
+
+Do not hand-roll this. Chromium **silently discards a CSS custom property over
+roughly 2 MB**, and every theme paints the photo through `var(--image)`, so a
+naive inline gives you a black rectangle where the photograph belongs, with
+nothing logged anywhere. `inlineFrameAssets` keeps the bytes verbatim whenever
+they fit and re-encodes an oversized photo so it survives.
+
+That makes the result **preview-only**: it is lossy by design and is not
+covered by the determinism guarantee above. Ship what `build` renders.
+
 ## Contributing
 
 Themes and narratives are the most useful things to contribute. See
